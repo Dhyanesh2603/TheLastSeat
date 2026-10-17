@@ -11,6 +11,21 @@
 
 ---
 
+### 🚀 Live Production Deployment
+
+| Service | Live URL | Description |
+| :--- | :--- | :--- |
+| **🌐 Interactive Web Application** | **[https://thelastseat-ui.onrender.com](https://thelastseat-ui.onrender.com)** | Live Auditorium UI, Seat Reservation Map & Checkout |
+| **⚡ Backend REST API** | **[https://thelastseat.onrender.com](https://thelastseat.onrender.com)** | FastAPI High-Concurrency Core Engine |
+| **📖 Interactive API Documentation** | **[https://thelastseat.onrender.com/docs](https://thelastseat.onrender.com/docs)** | Live Interactive Swagger / OpenAPI Specification |
+| **🩺 Health & Telemetry Endpoint** | **[https://thelastseat.onrender.com/api/v1/health](https://thelastseat.onrender.com/api/v1/health)** | Database & Distributed Redis Lock Status |
+
+> **Demo Access Credentials**:
+> - **Student Role**: `student@college.edu` / `StudentPass123!` *(or 1-click automatic student login)*
+> - **Admin Studio**: `admin@college.edu` / `AdminPass123!` *(access at [/admin](https://thelastseat-ui.onrender.com/admin))*
+
+---
+
 ## 1. Project Overview
 
 The **College Concert Ticket Booking Platform** is engineered to solve the classic real-world flash-sale concurrency problem: **10,000 students contending for 500 seats simultaneously**.
@@ -615,3 +630,4 @@ tests/test_idempotency.py::test_idempotency_key_prevents_duplicate_reservation P
 - [x] **Idempotency Keys**: SHA-256 header-based deduplication middleware with automatic cached replays.
 - [x] **Reverse Proxy**: Nginx configuration with gzip compression, binary rate limiting, and static serving.
 - [x] **Docker Containerization**: Multi-container `docker-compose.yml` for PostgreSQL, Redis, RabbitMQ, Backend, Frontend, and Nginx.
+- [x] **Cloud Deployment**: Fully deployed live on Render ([Frontend UI](https://thelastseat-ui.onrender.com) & [Backend API](https://thelastseat.onrender.com)).
