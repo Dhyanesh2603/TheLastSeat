@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import type { Seat, Reservation } from '../types';
 import { seatsApi, generateIdempotencyKey } from '../services/api';
-import { Clock, AlertTriangle, CheckCircle2, CreditCard, X, RefreshCw, Zap, Users, AlertOctagon, ShieldAlert } from 'lucide-react';
+import { Clock, AlertTriangle, CheckCircle2, CreditCard, X, RefreshCw, Zap, Users, AlertOctagon, ShieldAlert, Info } from 'lucide-react';
 
 interface ReservationDrawerProps {
   seat: Seat | null;
@@ -192,7 +192,7 @@ export const ReservationDrawer: React.FC<ReservationDrawerProps> = ({
               </span>
             </div>
             <h2 className="text-xl font-black text-white tracking-tight mt-0.5">
-              Seat {seat.seat_number} — <span className="text-emerald-400">${Number(seat.price).toFixed(2)}</span>
+              Seat {seat.seat_number} - <span className="text-emerald-400">${Number(seat.price).toFixed(2)}</span>
             </h2>
           </div>
           <button
@@ -209,8 +209,9 @@ export const ReservationDrawer: React.FC<ReservationDrawerProps> = ({
           {seat.status === 'Available' && !confirmedBookingRef && (
             <div className="rounded-lg border-2 border-emerald-500/80 bg-gradient-to-br from-emerald-950/70 via-neutral-900 to-[#0e0f13] p-4 space-y-3 shadow-lg shadow-emerald-950/40">
               <div className="flex items-center justify-between">
-                <span className="text-[11px] font-bold uppercase tracking-wider text-emerald-300 font-mono">
-                  ● Seat Ready for Purchase
+                <span className="text-[11px] font-bold uppercase tracking-wider text-emerald-300 font-mono flex items-center gap-1.5">
+                  <CheckCircle2 className="h-3.5 w-3.5 text-emerald-400" />
+                  <span>Seat Ready for Purchase</span>
                 </span>
                 <span className="text-base font-black text-emerald-400 font-mono">
                   ${Number(seat.price).toFixed(2)}
@@ -229,7 +230,7 @@ export const ReservationDrawer: React.FC<ReservationDrawerProps> = ({
                 ) : (
                   <div className="flex items-center space-x-2">
                     <Zap className="h-4 w-4 fill-black" />
-                    <span>⚡ Instant 1-Click Book Ticket</span>
+                    <span>Instant 1-Click Book Ticket</span>
                   </div>
                 )}
               </button>
@@ -295,8 +296,9 @@ export const ReservationDrawer: React.FC<ReservationDrawerProps> = ({
               </div>
             </div>
             <div className="pt-1">
-              <p className="text-[11px] text-neutral-400">
-                💡 <strong>Tip:</strong> Join the FIFO Waiting Queue to receive immediate priority allocation if this or another seat is cancelled!
+              <p className="text-[11px] text-neutral-400 flex items-start gap-1.5">
+                <Info className="h-3.5 w-3.5 text-amber-400 shrink-0 mt-0.5" />
+                <span><strong>Tip:</strong> Join the FIFO Waiting Queue to receive immediate priority allocation if this or another seat is cancelled!</span>
               </p>
             </div>
           </div>
@@ -384,7 +386,7 @@ export const ReservationDrawer: React.FC<ReservationDrawerProps> = ({
               <span>Payment Simulator Mode</span>
             </div>
             <p className="text-[11px] text-neutral-400">
-              Simulates real-world payment gateway latency (1–8s) and non-deterministic outcomes.
+              Simulates real-world payment gateway latency (1-8s) and non-deterministic outcomes.
             </p>
             
             <div className="grid grid-cols-2 gap-2 text-xs">

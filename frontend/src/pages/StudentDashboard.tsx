@@ -5,7 +5,7 @@ import type { Seat, Reservation } from '../types';
 import { SeatGrid } from '../components/SeatGrid';
 import { ReservationDrawer } from '../components/ReservationDrawer';
 import { WaitingQueueModal } from '../components/WaitingQueueModal';
-import { Users, Clock, Play, Pause, RotateCcw, Zap, Activity } from 'lucide-react';
+import { Users, Clock, Play, Pause, RotateCcw, Zap, Activity, Info, X } from 'lucide-react';
 
 interface SimulationAction {
   id: string;
@@ -172,7 +172,7 @@ export const StudentDashboard: React.FC = () => {
             className="rounded-lg bg-emerald-500 px-5 py-3 text-xs font-black text-black hover:bg-emerald-400 active:scale-95 transition-all shadow-lg shadow-emerald-950/80 flex items-center space-x-2 disabled:bg-neutral-800 disabled:text-neutral-500 cursor-pointer"
           >
             <Zap className="h-4 w-4 fill-black" />
-            <span>⚡ Quick Book Best Seat ($150 VIP)</span>
+            <span>Quick Book Best Seat ($150 VIP)</span>
           </button>
           <button
             onClick={() => setIsQueueModalOpen(true)}
@@ -305,7 +305,10 @@ export const StudentDashboard: React.FC = () => {
         {/* Educational Explainer Strip */}
         <div className="rounded border border-neutral-800/80 bg-neutral-900/60 px-3 py-2 text-xs text-neutral-300 flex flex-wrap items-center justify-between gap-2 font-mono">
           <div className="flex items-center space-x-2">
-            <span className="text-amber-400 font-bold">● HOW THE SIMULATION WORKS:</span>
+            <span className="text-amber-400 font-bold flex items-center gap-1.5">
+              <Info className="h-3.5 w-3.5 shrink-0" />
+              <span>HOW THE SIMULATION WORKS:</span>
+            </span>
             <span>Simulates 10,000 students rushing at 6:00 PM. Green seats turn yellow (5-minute Redis holds) and red (confirmed bookings).</span>
           </div>
           <span className="text-emerald-400 font-bold shrink-0">DOUBLE BOOKINGS: 0 (GUARANTEED)</span>
@@ -425,10 +428,10 @@ export const StudentDashboard: React.FC = () => {
               </button>
               <button
                 onClick={() => setSelectedSeat(null)}
-                className="rounded-lg border border-neutral-700 bg-neutral-800 px-2.5 py-2 text-xs text-neutral-400 hover:text-white"
+                className="rounded-lg border border-neutral-700 bg-neutral-800 p-2 text-neutral-400 hover:text-white"
                 title="Deselect seat"
               >
-                ✕
+                <X className="h-3.5 w-3.5" />
               </button>
             </div>
           </div>
