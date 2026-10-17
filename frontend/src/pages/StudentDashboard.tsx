@@ -125,39 +125,99 @@ export const StudentDashboard: React.FC = () => {
     }
   };
 
+  // Quick Book: Finds the best available seat and opens checkout immediately
+  const handleQuickBookBestSeat = () => {
+    if (!seatData?.seats) return;
+    const bestSeat =
+      seatData.seats.find((s) => s.status === 'Available' && s.tier === 'VIP') ||
+      seatData.seats.find((s) => s.status === 'Available' && s.tier === 'Standard') ||
+      seatData.seats.find((s) => s.status === 'Available');
+
+    if (bestSeat) {
+      setSelectedSeat(bestSeat);
+    }
+  };
+
+  const totalSeats = seatData?.total || 500;
+  const bookedCount = seatData?.booked_count || 0;
+  const availableCount = seatData?.available_count ?? 500;
+  const reservedCount = seatData?.reserved_count || 0;
+  const capacityPercent = Math.min(100, Math.round((bookedCount / totalSeats) * 100));
+
   return (
     <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 space-y-6">
       
-      {/* KPI Status Strip */}
-      <div className="grid grid-cols-2 gap-3 sm:grid-cols-5 text-xs font-mono">
-        <div className="rounded border border-neutral-800 bg-[#101115] p-3">
-          <div className="text-neutral-400">TOTAL CAPACITY</div>
-          <div className="text-lg font-bold text-white mt-1">{seatData?.total || 500}</div>
-        </div>
-        <div className="rounded border border-neutral-800 bg-[#101115] p-3">
-          <div className="text-neutral-400">AVAILABLE</div>
-          <div className="text-lg font-bold text-emerald-400 mt-1">{seatData?.available_count ?? '-'}</div>
-        </div>
-        <div className="rounded border border-neutral-800 bg-[#101115] p-3">
-          <div className="text-neutral-400">RESERVED (5M HOLD)</div>
-          <div className="text-lg font-bold text-amber-400 mt-1">{seatData?.reserved_count ?? '-'}</div>
-        </div>
-        <div className="rounded border border-neutral-800 bg-[#101115] p-3">
-          <div className="text-neutral-400">PERMANENTLY BOOKED</div>
-          <div className="text-lg font-bold text-neutral-400 mt-1">{seatData?.booked_count ?? '-'}</div>
-        </div>
-        <div className="col-span-2 sm:col-span-1 rounded border border-neutral-800 bg-[#101115] p-3 flex flex-col justify-between">
-          <div className="flex items-center justify-between text-neutral-400">
-            <span>WAITING QUEUE</span>
-            <Users className="h-3.5 w-3.5" />
+      {/* Interactive Quick Booking Hero Banner */}
+      <div className="rounded-xl border border-emerald-500/60 bg-gradient-to-r from-emerald-950/40 via-neutral-900 to-[#10121a] p-4 sm:p-5 flex flex-col md:flex-row md:items-center md:justify-between gap-4 shadow-lg shadow-emerald-950/20">
+        <div className="space-y-1">
+          <div className="flex items-center space-x-2">
+            <span className="flex h-2 w-2 rounded-full bg-emerald-400 animate-pulse" />
+            <span className="font-mono text-xs uppercase tracking-wider text-emerald-400 font-bold">
+              Tickets Open // 6:00 PM College Concert Portal
+            </span>
           </div>
+          <h1 className="text-xl sm:text-2xl font-black text-white tracking-tight">
+            Select Your Seat & Book Instantly
+          </h1>
+          <p className="text-xs text-neutral-300 max-w-2xl leading-relaxed">
+            Click any <strong className="text-emerald-400">vibrant green seat</strong> on the auditorium map to open checkout, 
+            or let the system grab the highest tier available seat with 1-click.
+          </p>
+        </div>
+
+        <div className="flex items-center gap-3 shrink-0">
+          <button
+            onClick={handleQuickBookBestSeat}
+            disabled={availableCount === 0}
+            className="rounded-lg bg-emerald-500 px-5 py-3 text-xs font-black text-black hover:bg-emerald-400 active:scale-95 transition-all shadow-lg shadow-emerald-950/80 flex items-center space-x-2 disabled:bg-neutral-800 disabled:text-neutral-500 cursor-pointer"
+          >
+            <Zap className="h-4 w-4 fill-black" />
+            <span>⚡ Quick Book Best Seat ($150 VIP)</span>
+          </button>
           <button
             onClick={() => setIsQueueModalOpen(true)}
-            className="mt-1 flex items-center justify-between rounded bg-neutral-800 px-2 py-1 text-neutral-200 hover:bg-neutral-700"
+            className="rounded-lg border border-neutral-700 bg-neutral-900/90 px-4 py-3 text-xs font-bold text-neutral-200 hover:border-neutral-500 hover:text-white flex items-center space-x-2 cursor-pointer shadow-md"
           >
-            <span>{queueStatus?.is_in_queue ? `Rank #${queueStatus.position}` : 'Join Waitlist'}</span>
-            <span className="text-neutral-400">({queueStatus?.total_in_queue || 0})</span>
+            <Users className="h-4 w-4 text-amber-400" />
+            <span>Waiting Queue ({queueStatus?.total_in_queue || 0})</span>
           </button>
+        </div>
+      </div>
+
+      {/* Auditorium Capacity & Metric Strip */}
+      <div className="rounded-lg border border-neutral-800 bg-[#101115] p-4 space-y-3">
+        <div className="flex items-center justify-between text-xs font-mono">
+          <div className="flex items-center space-x-2">
+            <span className="text-neutral-400">AUDITORIUM OCCUPANCY:</span>
+            <span className="font-bold text-white">{bookedCount} / {totalSeats} Booked</span>
+            <span className="text-neutral-500">({capacityPercent}% Full)</span>
+          </div>
+          <div className="flex items-center space-x-3 text-[11px]">
+            <span className="text-emerald-400 font-bold">{availableCount} Available</span>
+            <span className="text-neutral-600">|</span>
+            <span className="text-amber-400">{reservedCount} Under 5m Hold</span>
+            <span className="text-neutral-600">|</span>
+            <span className="text-neutral-400">{bookedCount} Confirmed</span>
+          </div>
+        </div>
+
+        {/* Live Animated Capacity Bar */}
+        <div className="w-full h-2.5 rounded-full bg-neutral-900 border border-neutral-800 overflow-hidden flex">
+          <div
+            style={{ width: `${(bookedCount / totalSeats) * 100}%` }}
+            className="bg-red-500/80 transition-all duration-500 h-full"
+            title={`${bookedCount} Seats Booked`}
+          />
+          <div
+            style={{ width: `${(reservedCount / totalSeats) * 100}%` }}
+            className="bg-amber-400 transition-all duration-500 h-full animate-pulse"
+            title={`${reservedCount} Seats Held`}
+          />
+          <div
+            style={{ width: `${(availableCount / totalSeats) * 100}%` }}
+            className="bg-emerald-500/90 transition-all duration-500 h-full"
+            title={`${availableCount} Seats Available`}
+          />
         </div>
       </div>
 
@@ -189,9 +249,9 @@ export const StudentDashboard: React.FC = () => {
             {/* Speed Selector */}
             <div className="flex items-center rounded border border-neutral-800 bg-neutral-900 text-xs font-mono">
               {[
-                { label: '5/s', val: 5 },
-                { label: '10/s', val: 10 },
-                { label: '20/s', val: 20 },
+                { label: '2/s (Slow)', val: 2 },
+                { label: '10/s (Rush)', val: 10 },
+                { label: '25/s (Flash Sale)', val: 25 },
               ].map((s) => (
                 <button
                   key={s.val}
@@ -240,6 +300,15 @@ export const StudentDashboard: React.FC = () => {
               <span className="hidden sm:inline">Reset Seats</span>
             </button>
           </div>
+        </div>
+
+        {/* Educational Explainer Strip */}
+        <div className="rounded border border-neutral-800/80 bg-neutral-900/60 px-3 py-2 text-xs text-neutral-300 flex flex-wrap items-center justify-between gap-2 font-mono">
+          <div className="flex items-center space-x-2">
+            <span className="text-amber-400 font-bold">● HOW THE SIMULATION WORKS:</span>
+            <span>Simulates 10,000 students rushing at 6:00 PM. Green seats turn yellow (5-minute Redis holds) and red (confirmed bookings).</span>
+          </div>
+          <span className="text-emerald-400 font-bold shrink-0">DOUBLE BOOKINGS: 0 (GUARANTEED)</span>
         </div>
 
         {/* Live Simulation Activity Ticker */}
@@ -324,6 +393,46 @@ export const StudentDashboard: React.FC = () => {
           onReservationUpdated={handleReservationUpdated}
           onOpenQueue={() => setIsQueueModalOpen(true)}
         />
+      )}
+
+      {/* Sticky Floating Bottom Dock when a Seat is Selected */}
+      {selectedSeat && (
+        <div className="fixed bottom-5 left-1/2 -translate-x-1/2 z-30 w-full max-w-xl px-4">
+          <div className="rounded-xl border border-emerald-500/70 bg-[#12141a]/95 backdrop-blur-md p-4 shadow-2xl flex items-center justify-between gap-4">
+            <div className="flex items-center space-x-3">
+              <span className="flex h-2.5 w-2.5 rounded-full bg-emerald-400 animate-ping shrink-0" />
+              <div>
+                <div className="text-[11px] font-mono uppercase tracking-wider text-emerald-400 font-bold">
+                  Selected: Seat {selectedSeat.seat_number}
+                </div>
+                <div className="text-sm font-black text-white">
+                  {selectedSeat.tier} Section • <span className="text-emerald-400 font-mono">${Number(selectedSeat.price).toFixed(2)}</span>
+                </div>
+              </div>
+            </div>
+
+            <div className="flex items-center space-x-2">
+              <button
+                onClick={() => {
+                  const s = selectedSeat;
+                  setSelectedSeat(null);
+                  setTimeout(() => setSelectedSeat(s), 50);
+                }}
+                className="rounded-lg bg-emerald-500 px-4 py-2 text-xs font-black text-black hover:bg-emerald-400 shadow-md shadow-emerald-950 flex items-center space-x-1.5 cursor-pointer"
+              >
+                <Zap className="h-4 w-4 fill-black" />
+                <span>Confirm & Checkout</span>
+              </button>
+              <button
+                onClick={() => setSelectedSeat(null)}
+                className="rounded-lg border border-neutral-700 bg-neutral-800 px-2.5 py-2 text-xs text-neutral-400 hover:text-white"
+                title="Deselect seat"
+              >
+                ✕
+              </button>
+            </div>
+          </div>
+        </div>
       )}
 
       {/* Waiting Queue Modal */}

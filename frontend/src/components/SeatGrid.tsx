@@ -35,26 +35,26 @@ export const SeatGrid: React.FC<SeatGridProps> = ({
     const isMyReservation = myReservationSeatId === seat.id;
 
     if (isSelected) {
-      return 'bg-white text-black border-white ring-2 ring-white/50 z-10 font-bold';
+      return 'bg-white text-black border-2 border-emerald-400 ring-4 ring-emerald-500/40 font-black scale-125 z-30 shadow-xl';
     }
 
     if (isMyReservation) {
-      return 'bg-amber-500/20 text-amber-300 border-amber-500/80 animate-pulse';
+      return 'bg-amber-400 text-black border-2 border-white ring-2 ring-amber-400 font-extrabold animate-pulse z-20';
     }
 
     switch (seat.status) {
       case 'Available':
         if (seat.tier === 'VIP') {
-          return 'bg-[#18191f] text-neutral-200 border-neutral-700/80 hover:border-emerald-400 hover:bg-[#22242c] cursor-pointer';
+          return 'bg-emerald-950/80 text-emerald-200 border border-emerald-400/90 hover:bg-emerald-400 hover:text-black hover:scale-125 hover:z-20 shadow-md shadow-emerald-950 font-bold cursor-pointer ring-1 ring-emerald-400/40';
         }
-        return 'bg-[#121316] text-neutral-300 border-neutral-800 hover:border-emerald-500 hover:bg-[#1a1c22] cursor-pointer';
+        return 'bg-emerald-950/50 text-emerald-300 border border-emerald-600/70 hover:bg-emerald-400 hover:text-black hover:scale-125 hover:z-20 shadow-sm shadow-emerald-950/40 font-semibold cursor-pointer';
       case 'Reserved':
-        return 'bg-amber-950/30 text-amber-400/90 border-dashed border-amber-800/80 hover:border-amber-500 hover:bg-amber-950/60 cursor-pointer';
+        return 'bg-amber-950/60 text-amber-300 border-dashed border-amber-500 hover:bg-amber-400 hover:text-black hover:scale-110 cursor-pointer animate-pulse font-medium';
       case 'Booked':
-        return 'bg-[#0a0a0c] text-neutral-500 border-neutral-900 hover:border-neutral-700 hover:bg-neutral-900 line-through cursor-pointer';
+        return 'bg-red-950/20 text-red-400/40 border border-red-900/40 hover:border-red-500 hover:bg-red-950/50 hover:text-red-300 line-through cursor-pointer opacity-70';
       case 'Unavailable':
       default:
-        return 'bg-red-950/20 text-neutral-600 border-neutral-900 hover:border-neutral-700 cursor-pointer';
+        return 'bg-neutral-900 text-neutral-600 border border-neutral-800 cursor-not-allowed';
     }
   };
 
@@ -106,31 +106,48 @@ export const SeatGrid: React.FC<SeatGridProps> = ({
         </div>
       </div>
 
-      {/* Stage Banner */}
-      <div className="flex flex-col items-center justify-center my-2">
-        <div className="w-full max-w-xl h-6 rounded-t border-t border-x border-neutral-700 bg-neutral-900/60 flex items-center justify-center">
-          <span className="font-mono text-[11px] tracking-widest text-neutral-400 uppercase">
-            STAGE // FRONT OF HOUSE
+      {/* Stage Banner with Acoustic Styling */}
+      <div className="flex flex-col items-center justify-center my-3">
+        <div className="w-full max-w-2xl h-9 rounded-t-lg border-t-2 border-x border-emerald-500/50 bg-gradient-to-b from-emerald-950/40 via-neutral-900 to-[#0e0f13] flex items-center justify-between px-6 shadow-lg shadow-emerald-950/20">
+          <div className="flex items-center space-x-1.5">
+            <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-ping" />
+            <span className="font-mono text-[10px] tracking-wider text-emerald-400 uppercase font-semibold">STAGE AUDIO MONITOR</span>
+          </div>
+          <span className="font-mono text-[11px] tracking-widest text-neutral-200 uppercase font-bold">
+            STAGE & MAIN PERFORMANCE AREA
           </span>
+          <span className="font-mono text-[10px] text-neutral-500">FRONT OF HOUSE</span>
         </div>
+        <div className="w-full max-w-2xl h-0.5 bg-gradient-to-r from-transparent via-emerald-400/80 to-transparent shadow-sm shadow-emerald-400" />
       </div>
 
       {/* Grid Container */}
-      <div className="overflow-x-auto rounded border border-neutral-800 bg-[#0e0f13] p-4">
+      <div className="overflow-x-auto rounded-lg border border-neutral-800 bg-[#0a0b0e] p-4 sm:p-5 shadow-inner">
         {isLoading ? (
-          <div className="flex h-96 items-center justify-center font-mono text-xs text-neutral-500">
-            Syncing seat states from PostgreSQL & Redis lock cache...
+          <div className="flex h-96 items-center justify-center font-mono text-xs text-neutral-400 animate-pulse">
+            Syncing 500 seat states from PostgreSQL & Redis lock cache...
           </div>
         ) : (
-          <div className="min-w-[760px] space-y-1.5">
+          <div className="min-w-[780px] space-y-1.5">
             {rows.map((row) => {
               const rowSeats = filteredSeats.filter((s) => s.row_identifier === row);
               if (rowSeats.length === 0) return null;
 
+              const isVipRow = ['A', 'B', 'C', 'D'].includes(row);
+              const isBalconyRow = ['O', 'P', 'Q', 'R', 'S', 'T'].includes(row);
+
               return (
-                <div key={row} className="flex items-center space-x-1">
+                <div key={row} className="flex items-center space-x-1.5">
                   {/* Row Letter Header */}
-                  <span className="w-6 font-mono text-[11px] font-bold text-neutral-400 text-center">
+                  <span
+                    className={`w-7 font-mono text-[11px] font-bold text-center py-1 rounded-[3px] ${
+                      isVipRow
+                        ? 'bg-amber-950/40 text-amber-300 border border-amber-800/60'
+                        : isBalconyRow
+                        ? 'bg-neutral-900 text-neutral-400 border border-neutral-800'
+                        : 'bg-neutral-800/40 text-neutral-300'
+                    }`}
+                  >
                     {row}
                   </span>
 
@@ -140,7 +157,7 @@ export const SeatGrid: React.FC<SeatGridProps> = ({
                       <button
                         key={seat.id}
                         onClick={() => onSelectSeat(seat)}
-                        title={`${seat.seat_number} - ${seat.tier} - $${seat.price} (${seat.status}) - Click to inspect`}
+                        title={`Seat ${seat.seat_number} • ${seat.tier} • $${seat.price} (${seat.status}) • Click to inspect / book`}
                         className={`h-7 flex-1 min-w-[24px] rounded-[3px] border text-[10px] font-mono transition-all duration-150 flex items-center justify-center ${getSeatColor(
                           seat
                         )}`}
@@ -157,28 +174,28 @@ export const SeatGrid: React.FC<SeatGridProps> = ({
       </div>
 
       {/* Legend Bar */}
-      <div className="flex flex-wrap items-center justify-between gap-4 border-t border-neutral-800/80 pt-3 text-xs text-neutral-400 font-mono">
-        <div className="flex items-center space-x-4">
+      <div className="flex flex-wrap items-center justify-between gap-4 border-t border-neutral-800/80 pt-3 text-xs text-neutral-300 font-mono">
+        <div className="flex flex-wrap items-center gap-4">
           <div className="flex items-center space-x-1.5">
-            <span className="h-3 w-3 rounded-[2px] border border-neutral-700 bg-[#121316]" />
-            <span>Available</span>
+            <span className="h-3.5 w-3.5 rounded-[2px] border border-emerald-500 bg-emerald-950/70 shadow-xs shadow-emerald-500" />
+            <span className="text-emerald-300 font-semibold">Available (Click to Book)</span>
           </div>
           <div className="flex items-center space-x-1.5">
-            <span className="h-3 w-3 rounded-[2px] border border-dashed border-neutral-700 bg-neutral-800/40" />
-            <span>Reserved (5m lock)</span>
+            <span className="h-3.5 w-3.5 rounded-[2px] border border-dashed border-amber-500 bg-amber-950/60 animate-pulse" />
+            <span className="text-amber-300">Reserved (5m Hold)</span>
           </div>
           <div className="flex items-center space-x-1.5">
-            <span className="h-3 w-3 rounded-[2px] border border-neutral-900 bg-[#0a0a0c]" />
-            <span>Booked (Permanent)</span>
+            <span className="h-3.5 w-3.5 rounded-[2px] border border-red-900/60 bg-red-950/20" />
+            <span className="text-red-400 line-through">Booked (Permanent)</span>
           </div>
           <div className="flex items-center space-x-1.5">
-            <span className="h-3 w-3 rounded-[2px] border border-amber-500 bg-amber-500/20" />
-            <span>Your Hold</span>
+            <span className="h-3.5 w-3.5 rounded-[2px] border-2 border-white bg-amber-400" />
+            <span className="text-amber-200 font-bold">Your Active Hold</span>
           </div>
         </div>
 
         <div className="text-[11px] text-neutral-400">
-          VIP Rows A-D ($150) • Standard Rows E-N ($75) • Balcony Rows O-T ($45)
+          <span className="text-amber-300">VIP Rows A-D ($150)</span> • Standard Rows E-N ($75) • Balcony Rows O-T ($45)
         </div>
       </div>
     </div>

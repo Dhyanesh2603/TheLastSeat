@@ -174,55 +174,103 @@ export const ReservationDrawer: React.FC<ReservationDrawerProps> = ({
   };
 
   return (
-    <div className="fixed inset-y-0 right-0 z-50 flex w-full max-w-md flex-col border-l border-neutral-800 bg-[#0e0f13] text-neutral-200 shadow-2xl">
-      {/* Header */}
-      <div className="flex items-center justify-between border-b border-neutral-800 px-6 py-4">
-        <div>
-          <span className="font-mono text-xs uppercase tracking-wider text-neutral-400">Seat Inspection & Status</span>
-          <h2 className="text-lg font-bold text-white tracking-tight">{seat.seat_number}</h2>
-        </div>
-        <button
-          onClick={onClose}
-          className="rounded p-1.5 text-neutral-400 hover:bg-neutral-800 hover:text-white"
-        >
-          <X className="h-5 w-5" />
-        </button>
-      </div>
+    <>
+      {/* Dark backdrop overlay to focus user attention */}
+      <div 
+        className="fixed inset-0 z-40 bg-black/70 backdrop-blur-xs transition-opacity" 
+        onClick={onClose} 
+      />
 
-      {/* Body Content */}
-      <div className="flex-1 space-y-6 overflow-y-auto p-6 text-sm">
-        {/* Seat Specification Card */}
-        <div className="rounded border border-neutral-800 bg-neutral-900/50 p-4 space-y-3 font-mono text-xs">
-          <div className="flex justify-between border-b border-neutral-800 pb-2">
-            <span className="text-neutral-400">Tier / Section</span>
-            <span className="font-semibold text-white">{seat.tier}</span>
+      <div className="fixed inset-y-0 right-0 z-50 flex w-full max-w-md flex-col border-l border-neutral-700 bg-[#0e0f13] text-neutral-200 shadow-2xl">
+        {/* Header */}
+        <div className="flex items-center justify-between border-b border-neutral-800 bg-[#12141a] px-6 py-4">
+          <div>
+            <div className="flex items-center space-x-2">
+              <span className="h-2 w-2 rounded-full bg-emerald-400 animate-pulse" />
+              <span className="font-mono text-xs uppercase tracking-wider text-emerald-400 font-bold">
+                Ticket Checkout
+              </span>
+            </div>
+            <h2 className="text-xl font-black text-white tracking-tight mt-0.5">
+              Seat {seat.seat_number} — <span className="text-emerald-400">${Number(seat.price).toFixed(2)}</span>
+            </h2>
           </div>
-          <div className="flex justify-between border-b border-neutral-800 pb-2">
-            <span className="text-neutral-400">Coordinates</span>
-            <span className="text-neutral-200">Row {seat.row_identifier}, Col {seat.column_number}</span>
-          </div>
-          <div className="flex justify-between border-b border-neutral-800 pb-2">
-            <span className="text-neutral-400">Base Price</span>
-            <span className="font-bold text-emerald-400">${Number(seat.price).toFixed(2)}</span>
-          </div>
-          <div className="flex justify-between items-center">
-            <span className="text-neutral-400">Current Status</span>
-            <span
-              className={`rounded px-2 py-0.5 text-[10px] uppercase font-bold tracking-wider ${
-                seat.status === 'Available'
-                  ? 'bg-emerald-950/60 text-emerald-400 border border-emerald-800/60'
-                  : seat.status === 'Reserved'
-                  ? 'bg-amber-950/60 text-amber-400 border border-amber-800/60'
-                  : 'bg-neutral-800 text-neutral-400'
-              }`}
-            >
-              {seat.status}
-            </span>
-          </div>
+          <button
+            onClick={onClose}
+            className="rounded p-2 text-neutral-400 hover:bg-neutral-800 hover:text-white"
+          >
+            <X className="h-5 w-5" />
+          </button>
         </div>
 
-        {/* EDGE CASE 1: Seat is ALREADY BOOKED by someone else */}
-        {seat.status === 'Booked' && (
+        {/* Body Content */}
+        <div className="flex-1 space-y-5 overflow-y-auto p-6 text-sm">
+          {/* Top Hero Booking Button for Available Seats */}
+          {seat.status === 'Available' && !confirmedBookingRef && (
+            <div className="rounded-lg border-2 border-emerald-500/80 bg-gradient-to-br from-emerald-950/70 via-neutral-900 to-[#0e0f13] p-4 space-y-3 shadow-lg shadow-emerald-950/40">
+              <div className="flex items-center justify-between">
+                <span className="text-[11px] font-bold uppercase tracking-wider text-emerald-300 font-mono">
+                  ● Seat Ready for Purchase
+                </span>
+                <span className="text-base font-black text-emerald-400 font-mono">
+                  ${Number(seat.price).toFixed(2)}
+                </span>
+              </div>
+              <button
+                disabled={isReserving || isConfirming}
+                onClick={handleInstantBook}
+                className="w-full rounded-md bg-emerald-500 py-3 text-sm font-bold text-black transition-all hover:bg-emerald-400 hover:scale-[1.02] active:scale-[0.98] disabled:bg-neutral-800 disabled:text-neutral-500 flex items-center justify-center space-x-2 shadow-lg shadow-emerald-900/60 cursor-pointer"
+              >
+                {isReserving || isConfirming ? (
+                  <div className="flex items-center space-x-2">
+                    <RefreshCw className="h-4 w-4 animate-spin text-black" />
+                    <span>Locking Seat & Confirming...</span>
+                  </div>
+                ) : (
+                  <div className="flex items-center space-x-2">
+                    <Zap className="h-4 w-4 fill-black" />
+                    <span>⚡ Instant 1-Click Book Ticket</span>
+                  </div>
+                )}
+              </button>
+              <p className="text-[11px] text-emerald-400/80 text-center font-mono">
+                Atomic reserve + payment with zero double bookings
+              </p>
+            </div>
+          )}
+
+          {/* Seat Specification Card */}
+          <div className="rounded border border-neutral-800 bg-neutral-900/50 p-4 space-y-2.5 font-mono text-xs">
+            <div className="flex justify-between border-b border-neutral-800 pb-2">
+              <span className="text-neutral-400">Tier / Section</span>
+              <span className="font-semibold text-white">{seat.tier}</span>
+            </div>
+            <div className="flex justify-between border-b border-neutral-800 pb-2">
+              <span className="text-neutral-400">Coordinates</span>
+              <span className="text-neutral-200">Row {seat.row_identifier}, Col {seat.column_number}</span>
+            </div>
+            <div className="flex justify-between border-b border-neutral-800 pb-2">
+              <span className="text-neutral-400">Base Price</span>
+              <span className="font-bold text-emerald-400">${Number(seat.price).toFixed(2)}</span>
+            </div>
+            <div className="flex justify-between items-center">
+              <span className="text-neutral-400">Current Status</span>
+              <span
+                className={`rounded px-2 py-0.5 text-[10px] uppercase font-bold tracking-wider ${
+                  seat.status === 'Available'
+                    ? 'bg-emerald-950/80 text-emerald-300 border border-emerald-600/80'
+                    : seat.status === 'Reserved'
+                    ? 'bg-amber-950/80 text-amber-300 border border-amber-600/80'
+                    : 'bg-red-950/40 text-red-400 border border-red-900/40'
+                }`}
+              >
+                {seat.status}
+              </span>
+            </div>
+          </div>
+
+          {/* EDGE CASE 1: Seat is ALREADY BOOKED by someone else */}
+          {seat.status === 'Booked' && (
           <div className="rounded border border-red-900/60 bg-red-950/20 p-5 space-y-3">
             <div className="flex items-center space-x-2 text-red-400">
               <AlertOctagon className="h-5 w-5 shrink-0" />
@@ -493,5 +541,6 @@ export const ReservationDrawer: React.FC<ReservationDrawerProps> = ({
         )}
       </div>
     </div>
+  </>
   );
 };

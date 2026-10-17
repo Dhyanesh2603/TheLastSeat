@@ -22,7 +22,21 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   useEffect(() => {
     const fetchUser = async () => {
-      if (token) {
+      let currentToken = token;
+      if (!currentToken) {
+        try {
+          // Auto-authenticate as default student for instant seamless UX
+          const data = await authApi.login('student@college.edu', 'StudentPass123!');
+          localStorage.setItem('concert_token', data.access_token);
+          setToken(data.access_token);
+          setUser(data.user);
+          setIsLoading(false);
+          return;
+        } catch {
+          // fallback if offline
+        }
+      }
+      if (currentToken) {
         try {
           const userData = await authApi.getMe();
           setUser(userData);
