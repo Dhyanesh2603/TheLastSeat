@@ -1,0 +1,30 @@
+# Private Documentation - DO NOT COMMIT OR PUSH TO GIT
+explanation.html
+*.explanation.html
+PROJECT_SYSTEM_DOCUMENTATION.html
+*DOCUMENTATION.html
+*.private.html
+
+# Python & Backend
+backend/venv/
+backend/__pycache__/
+backend/*/__pycache__/
+backend/*/*/__pycache__/
+backend/*/*/*/__pycache__/
+backend/*.pyc
+backend/*.db
+backend/*.db-wal
+backend/*.db-shm
+backend/*.db-journal
+backend/.pytest_cache/
+
+# Frontend
+frontend/node_modules/
+frontend/dist/
+frontend/.vite/
+
+# Environment Variables & Secrets
+.env
+backend/.env
+frontend/.env
+*.local
