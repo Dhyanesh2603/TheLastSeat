@@ -17,7 +17,6 @@ export const SeatGrid: React.FC<SeatGridProps> = ({
   isLoading
 }) => {
   const [filterTier, setFilterTier] = useState<string>('ALL');
-  const [filterStatus, setFilterStatus] = useState<string>('ALL');
   const [searchQuery, setSearchQuery] = useState<string>('');
 
   // Group seats by row_identifier (A to T)
@@ -25,7 +24,6 @@ export const SeatGrid: React.FC<SeatGridProps> = ({
 
   const filteredSeats = seats.filter((s) => {
     if (filterTier !== 'ALL' && s.tier !== filterTier) return false;
-    if (filterStatus !== 'ALL' && s.status !== filterStatus) return false;
     if (searchQuery && !s.seat_number.toLowerCase().includes(searchQuery.toLowerCase())) return false;
     return true;
   });
@@ -62,63 +60,40 @@ export const SeatGrid: React.FC<SeatGridProps> = ({
     <div className="flex flex-col space-y-4">
       {/* Controls & Filter Bar */}
       <div className="flex flex-wrap items-center justify-between gap-3 border-b border-neutral-800/80 pb-3">
-        <div className="flex flex-wrap items-center gap-2 text-xs">
-          <span className="font-mono text-neutral-400 uppercase tracking-wider text-[11px]">Filter Tier:</span>
+        <div className="flex items-center space-x-1.5 text-xs">
+          <span className="font-mono text-neutral-500 uppercase tracking-wider text-[11px] mr-1">Section:</span>
           {['ALL', 'VIP', 'Standard', 'Balcony'].map((tier) => (
             <button
               key={tier}
               onClick={() => setFilterTier(tier)}
-              className={`rounded px-2.5 py-1 transition-colors ${
+              className={`rounded px-2.5 py-1 text-[11px] font-mono transition-colors cursor-pointer ${
                 filterTier === tier
-                  ? 'bg-neutral-200 text-black font-medium'
+                  ? 'bg-neutral-200 text-black font-semibold'
                   : 'bg-neutral-900 text-neutral-400 hover:text-white border border-neutral-800'
               }`}
             >
               {tier}
             </button>
           ))}
-
-          <span className="ml-2 font-mono text-neutral-400 uppercase tracking-wider text-[11px]">Status:</span>
-          {['ALL', 'Available', 'Reserved', 'Booked'].map((st) => (
-            <button
-              key={st}
-              onClick={() => setFilterStatus(st)}
-              className={`rounded px-2.5 py-1 transition-colors ${
-                filterStatus === st
-                  ? 'bg-neutral-200 text-black font-medium'
-                  : 'bg-neutral-900 text-neutral-400 hover:text-white border border-neutral-800'
-              }`}
-            >
-              {st}
-            </button>
-          ))}
         </div>
 
         {/* Search */}
-        <div className="relative">
-          <input
-            type="text"
-            placeholder="Search (e.g. A-05)..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="rounded border border-neutral-800 bg-neutral-900 px-3 py-1 text-xs text-neutral-200 placeholder-neutral-500 focus:border-neutral-500 focus:outline-none"
-          />
-        </div>
+        <input
+          type="text"
+          placeholder="Search seat (e.g. A-05)..."
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          className="rounded border border-neutral-800 bg-neutral-900 px-3 py-1 text-xs text-neutral-200 placeholder-neutral-500 focus:border-neutral-600 focus:outline-none w-48 font-mono text-[11px]"
+        />
       </div>
 
-      {/* Stage Banner with Acoustic Styling */}
-      <div className="flex flex-col items-center justify-center my-3">
-        <div className="w-full max-w-2xl h-9 rounded-t-lg border-t-2 border-x border-emerald-500/50 bg-gradient-to-b from-emerald-950/40 via-neutral-900 to-[#0e0f13] flex items-center justify-between px-6 shadow-lg shadow-emerald-950/20">
-          <div className="flex items-center space-x-1.5">
-            <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-ping" />
-            <span className="font-mono text-[10px] tracking-wider text-emerald-400 uppercase font-semibold">STAGE AUDIO MONITOR</span>
-          </div>
-          <span className="font-mono text-[11px] tracking-widest text-neutral-200 uppercase font-bold">
-            STAGE & MAIN PERFORMANCE AREA
+      {/* Minimal Stage Bar */}
+      <div className="flex flex-col items-center justify-center my-2">
+        <div className="w-full max-w-xl py-1.5 rounded-t border-t border-x border-neutral-700/80 bg-neutral-900/40 text-center">
+          <span className="font-mono text-[10px] tracking-widest text-neutral-400 uppercase font-semibold">
+            STAGE
           </span>
-          <span className="font-mono text-[10px] text-neutral-500">FRONT OF HOUSE</span>
         </div>
-        <div className="w-full max-w-2xl h-0.5 bg-gradient-to-r from-transparent via-emerald-400/80 to-transparent shadow-sm shadow-emerald-400" />
       </div>
 
       {/* Grid Container */}
@@ -173,29 +148,29 @@ export const SeatGrid: React.FC<SeatGridProps> = ({
         )}
       </div>
 
-      {/* Legend Bar */}
-      <div className="flex flex-wrap items-center justify-between gap-4 border-t border-neutral-800/80 pt-3 text-xs text-neutral-300 font-mono">
-        <div className="flex flex-wrap items-center gap-4">
+      {/* Minimal Legend Bar */}
+      <div className="flex flex-wrap items-center justify-between gap-3 border-t border-neutral-800/80 pt-3 text-[11px] text-neutral-400 font-mono">
+        <div className="flex items-center space-x-4">
           <div className="flex items-center space-x-1.5">
-            <span className="h-3.5 w-3.5 rounded-[2px] border border-emerald-500 bg-emerald-950/70 shadow-xs shadow-emerald-500" />
-            <span className="text-emerald-300 font-semibold">Available (Click to Book)</span>
+            <span className="h-2.5 w-2.5 rounded-xs border border-emerald-500 bg-emerald-950/70" />
+            <span className="text-emerald-400">Available</span>
           </div>
           <div className="flex items-center space-x-1.5">
-            <span className="h-3.5 w-3.5 rounded-[2px] border border-dashed border-amber-500 bg-amber-950/60 animate-pulse" />
-            <span className="text-amber-300">Reserved (5m Hold)</span>
+            <span className="h-2.5 w-2.5 rounded-xs border border-dashed border-amber-500 bg-amber-950/60" />
+            <span className="text-amber-400">5m Hold</span>
           </div>
           <div className="flex items-center space-x-1.5">
-            <span className="h-3.5 w-3.5 rounded-[2px] border border-red-900/60 bg-red-950/20" />
-            <span className="text-red-400 line-through">Booked (Permanent)</span>
+            <span className="h-2.5 w-2.5 rounded-xs border border-red-900/60 bg-red-950/20" />
+            <span className="text-neutral-500 line-through">Booked</span>
           </div>
           <div className="flex items-center space-x-1.5">
-            <span className="h-3.5 w-3.5 rounded-[2px] border-2 border-white bg-amber-400" />
-            <span className="text-amber-200 font-bold">Your Active Hold</span>
+            <span className="h-2.5 w-2.5 rounded-xs border border-white bg-amber-400" />
+            <span className="text-amber-300">Your Seat</span>
           </div>
         </div>
 
-        <div className="text-[11px] text-neutral-400">
-          <span className="text-amber-300">VIP Rows A-D ($150)</span> • Standard Rows E-N ($75) • Balcony Rows O-T ($45)
+        <div className="text-neutral-500">
+          VIP $150 (A-D) • Standard $75 (E-N) • Balcony $45 (O-T)
         </div>
       </div>
     </div>

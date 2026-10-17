@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import type { Seat, Reservation } from '../types';
 import { seatsApi, generateIdempotencyKey } from '../services/api';
-import { Clock, AlertTriangle, CheckCircle2, CreditCard, X, RefreshCw, Zap, Users, AlertOctagon, ShieldAlert, Info } from 'lucide-react';
+import { Clock, AlertTriangle, CheckCircle2, X, RefreshCw, Zap, Users, AlertOctagon } from 'lucide-react';
 
 interface ReservationDrawerProps {
   seat: Seat | null;
@@ -204,226 +204,145 @@ export const ReservationDrawer: React.FC<ReservationDrawerProps> = ({
         </div>
 
         {/* Body Content */}
-        <div className="flex-1 space-y-5 overflow-y-auto p-6 text-sm">
-          {/* Top Hero Booking Button for Available Seats */}
-          {seat.status === 'Available' && !confirmedBookingRef && (
-            <div className="rounded-lg border-2 border-emerald-500/80 bg-gradient-to-br from-emerald-950/70 via-neutral-900 to-[#0e0f13] p-4 space-y-3 shadow-lg shadow-emerald-950/40">
-              <div className="flex items-center justify-between">
-                <span className="text-[11px] font-bold uppercase tracking-wider text-emerald-300 font-mono flex items-center gap-1.5">
-                  <CheckCircle2 className="h-3.5 w-3.5 text-emerald-400" />
-                  <span>Seat Ready for Purchase</span>
-                </span>
-                <span className="text-base font-black text-emerald-400 font-mono">
-                  ${Number(seat.price).toFixed(2)}
+        <div className="flex-1 space-y-4 overflow-y-auto p-5 text-sm">
+          {/* Seat Summary Card */}
+          <div className="rounded-lg border border-neutral-800 bg-neutral-900/40 p-4 space-y-2.5 font-mono text-xs">
+            <div className="flex justify-between text-neutral-400">
+              <span>Section</span>
+              <span className="font-semibold text-white">{seat.tier} Tier</span>
+            </div>
+            <div className="flex justify-between text-neutral-400">
+              <span>Location</span>
+              <span className="text-neutral-200">Row {seat.row_identifier}, Seat {seat.column_number}</span>
+            </div>
+            <div className="flex justify-between text-neutral-400 pt-2 border-t border-neutral-800/80">
+              <span>Ticket Price</span>
+              <span className="font-bold text-emerald-400 text-sm">${Number(seat.price).toFixed(2)}</span>
+            </div>
+          </div>
+
+          {/* EDGE CASE: Seat is BOOKED by someone else */}
+          {seat.status === 'Booked' && (
+            <div className="rounded-lg border border-red-900/60 bg-red-950/20 p-4 space-y-3">
+              <div className="flex items-center space-x-2 text-red-400">
+                <AlertOctagon className="h-4 w-4 shrink-0" />
+                <span className="font-semibold text-xs">Seat Already Booked</span>
+              </div>
+              <p className="text-xs text-neutral-300">
+                Seat <strong>{seat.seat_number}</strong> was confirmed by another attendee.
+              </p>
+              {onOpenQueue && (
+                <button
+                  onClick={() => {
+                    onClose();
+                    onOpenQueue();
+                  }}
+                  className="w-full rounded bg-amber-500 py-2 text-xs font-semibold text-black hover:bg-amber-400 transition-colors flex items-center justify-center space-x-1.5 cursor-pointer"
+                >
+                  <Users className="h-3.5 w-3.5" />
+                  <span>Join Waiting Queue</span>
+                </button>
+              )}
+            </div>
+          )}
+
+          {/* EDGE CASE: Seat is RESERVED by someone else */}
+          {seat.status === 'Reserved' && !isReservedByMe && (
+            <div className="rounded-lg border border-amber-800/60 bg-amber-950/20 p-4 space-y-3">
+              <div className="flex items-center space-x-2 text-amber-400">
+                <Clock className="h-4 w-4 shrink-0 animate-pulse" />
+                <span className="font-semibold text-xs">Under 5-Minute Hold</span>
+              </div>
+              <p className="text-xs text-neutral-300">
+                Another student is in checkout. If abandoned or payment fails, it will release automatically.
+              </p>
+              {onOpenQueue && (
+                <button
+                  onClick={() => {
+                    onClose();
+                    onOpenQueue();
+                  }}
+                  className="w-full rounded bg-amber-500 py-2 text-xs font-semibold text-black hover:bg-amber-400 transition-colors flex items-center justify-center space-x-1.5 cursor-pointer"
+                >
+                  <Users className="h-3.5 w-3.5" />
+                  <span>Join Waiting Queue</span>
+                </button>
+              )}
+            </div>
+          )}
+
+          {/* Confirmed Receipt Box */}
+          {confirmedBookingRef && (
+            <div className="rounded-lg border border-emerald-900/80 bg-emerald-950/20 p-4 space-y-2">
+              <div className="flex items-center space-x-2 text-emerald-400">
+                <CheckCircle2 className="h-4 w-4" />
+                <span className="font-semibold text-xs">Booking Confirmed</span>
+              </div>
+              <div className="rounded bg-black/40 p-2.5 font-mono text-xs space-y-0.5">
+                <div className="text-neutral-500 text-[10px]">REFERENCE NUMBER</div>
+                <div className="text-sm font-bold text-white tracking-widest">{confirmedBookingRef}</div>
+              </div>
+            </div>
+          )}
+
+          {/* Active 5-min hold by current user */}
+          {isReservedByMe && !confirmedBookingRef && (
+            <div className="rounded-lg border border-amber-800/80 bg-amber-950/20 p-4 space-y-2">
+              <div className="flex items-center justify-between text-xs">
+                <div className="flex items-center space-x-1.5 text-amber-400 font-semibold">
+                  <Clock className="h-3.5 w-3.5" />
+                  <span>Your Hold Active</span>
+                </div>
+                <span className="font-mono text-xs font-bold text-amber-300 bg-amber-950 px-2 py-0.5 rounded border border-amber-700/60">
+                  {formatTimer(remainingSeconds)}
                 </span>
               </div>
-              <button
-                disabled={isReserving || isConfirming}
-                onClick={handleInstantBook}
-                className="w-full rounded-md bg-emerald-500 py-3 text-sm font-bold text-black transition-all hover:bg-emerald-400 hover:scale-[1.02] active:scale-[0.98] disabled:bg-neutral-800 disabled:text-neutral-500 flex items-center justify-center space-x-2 shadow-lg shadow-emerald-900/60 cursor-pointer"
-              >
-                {isReserving || isConfirming ? (
-                  <div className="flex items-center space-x-2">
-                    <RefreshCw className="h-4 w-4 animate-spin text-black" />
-                    <span>Locking Seat & Confirming...</span>
-                  </div>
-                ) : (
-                  <div className="flex items-center space-x-2">
-                    <Zap className="h-4 w-4 fill-black" />
-                    <span>Instant 1-Click Book Ticket</span>
-                  </div>
-                )}
-              </button>
-              <p className="text-[11px] text-emerald-400/80 text-center font-mono">
-                Atomic reserve + payment with zero double bookings
+              <p className="text-[11px] text-neutral-400">
+                Seat reserved exclusively. Confirm payment before timer expires.
               </p>
             </div>
           )}
 
-          {/* Seat Specification Card */}
-          <div className="rounded border border-neutral-800 bg-neutral-900/50 p-4 space-y-2.5 font-mono text-xs">
-            <div className="flex justify-between border-b border-neutral-800 pb-2">
-              <span className="text-neutral-400">Tier / Section</span>
-              <span className="font-semibold text-white">{seat.tier}</span>
-            </div>
-            <div className="flex justify-between border-b border-neutral-800 pb-2">
-              <span className="text-neutral-400">Coordinates</span>
-              <span className="text-neutral-200">Row {seat.row_identifier}, Col {seat.column_number}</span>
-            </div>
-            <div className="flex justify-between border-b border-neutral-800 pb-2">
-              <span className="text-neutral-400">Base Price</span>
-              <span className="font-bold text-emerald-400">${Number(seat.price).toFixed(2)}</span>
-            </div>
-            <div className="flex justify-between items-center">
-              <span className="text-neutral-400">Current Status</span>
-              <span
-                className={`rounded px-2 py-0.5 text-[10px] uppercase font-bold tracking-wider ${
-                  seat.status === 'Available'
-                    ? 'bg-emerald-950/80 text-emerald-300 border border-emerald-600/80'
-                    : seat.status === 'Reserved'
-                    ? 'bg-amber-950/80 text-amber-300 border border-amber-600/80'
-                    : 'bg-red-950/40 text-red-400 border border-red-900/40'
-                }`}
-              >
-                {seat.status}
-              </span>
-            </div>
-          </div>
-
-          {/* EDGE CASE 1: Seat is ALREADY BOOKED by someone else */}
-          {seat.status === 'Booked' && (
-          <div className="rounded border border-red-900/60 bg-red-950/20 p-5 space-y-3">
-            <div className="flex items-center space-x-2 text-red-400">
-              <AlertOctagon className="h-5 w-5 shrink-0" />
-              <span className="font-semibold text-sm">Seat Already Booked</span>
-            </div>
-            <p className="text-xs text-neutral-300 leading-relaxed">
-              Seat <strong>{seat.seat_number}</strong> is already permanently purchased and confirmed by another student. 
-              The system strictly enforces zero double bookings:
-            </p>
-            <div className="rounded bg-black/60 p-3 font-mono text-[11px] space-y-1.5 border border-neutral-800">
-              <div className="flex justify-between text-neutral-400">
-                <span>LOCK STATUS:</span>
-                <span className="text-red-400 font-bold">PERMANENTLY BOOKED</span>
+          {/* Payment Simulator Selector (Only when Available) */}
+          {seat.status === 'Available' && !confirmedBookingRef && (
+            <div className="rounded-lg border border-neutral-800 bg-neutral-900/30 p-3 space-y-2">
+              <div className="flex items-center justify-between text-xs text-neutral-400">
+                <span>Payment Simulation</span>
+                <span className="font-mono text-[10px] text-neutral-500">Gateway Mode</span>
               </div>
-              <div className="flex justify-between text-neutral-400">
-                <span>STORAGE LEVEL:</span>
-                <span className="text-neutral-300">ACID SELECT FOR UPDATE</span>
-              </div>
-              <div className="flex justify-between text-neutral-400">
-                <span>DOUBLE BOOKINGS:</span>
-                <span className="text-emerald-400 font-bold">0 (GUARANTEED)</span>
+              <div className="grid grid-cols-3 gap-1.5 text-xs font-mono">
+                {[
+                  { id: 'success', label: 'Success' },
+                  { id: 'random', label: 'Random' },
+                  { id: 'failure', label: 'Decline' },
+                ].map((opt) => (
+                  <button
+                    key={opt.id}
+                    onClick={() => setForceOutcome(opt.id)}
+                    className={`rounded px-2 py-1 text-center border text-[11px] transition-colors cursor-pointer ${
+                      forceOutcome === opt.id
+                        ? 'border-neutral-200 bg-neutral-800 text-white font-medium'
+                        : 'border-neutral-800 bg-neutral-900 text-neutral-400 hover:text-white'
+                    }`}
+                  >
+                    {opt.label}
+                  </button>
+                ))}
               </div>
             </div>
-            <div className="pt-1">
-              <p className="text-[11px] text-neutral-400 flex items-start gap-1.5">
-                <Info className="h-3.5 w-3.5 text-amber-400 shrink-0 mt-0.5" />
-                <span><strong>Tip:</strong> Join the FIFO Waiting Queue to receive immediate priority allocation if this or another seat is cancelled!</span>
-              </p>
-            </div>
-          </div>
-        )}
+          )}
 
-        {/* EDGE CASE 2: Seat is RESERVED by someone else */}
-        {seat.status === 'Reserved' && !isReservedByMe && (
-          <div className="rounded border border-amber-800/60 bg-amber-950/20 p-5 space-y-3">
-            <div className="flex items-center space-x-2 text-amber-400">
-              <Clock className="h-5 w-5 shrink-0 animate-pulse" />
-              <span className="font-semibold text-sm">Seat Under Active 5-Minute Hold</span>
-            </div>
-            <p className="text-xs text-neutral-300 leading-relaxed">
-              Another student is currently in checkout for seat <strong>{seat.seat_number}</strong> under an active Redis distributed lock.
-            </p>
-            <div className="rounded bg-black/60 p-3 font-mono text-[11px] space-y-1.5 border border-neutral-800">
-              <div className="flex justify-between text-neutral-400">
-                <span>LOCK TYPE:</span>
-                <span className="text-amber-400 font-bold">Redis SET NX PX Hold</span>
-              </div>
-              <div className="flex justify-between text-neutral-400">
-                <span>AUTO-EXPIRY:</span>
-                <span className="text-neutral-300">300 Seconds (5 mins)</span>
-              </div>
-            </div>
-            <p className="text-[11px] text-neutral-400">
-              If the student abandons checkout or payment fails, this seat will automatically return to Available or go to the waiting queue.
-            </p>
-          </div>
-        )}
-
-        {/* EDGE CASE 3: Seat is UNAVAILABLE */}
-        {seat.status === 'Unavailable' && (
-          <div className="rounded border border-neutral-800 bg-neutral-900/40 p-5 space-y-2">
-            <div className="flex items-center space-x-2 text-neutral-400 font-semibold text-sm">
-              <ShieldAlert className="h-5 w-5" />
-              <span>Seat Reserved for Sound / Stage Crew</span>
-            </div>
-            <p className="text-xs text-neutral-400 leading-relaxed">
-              Seat <strong>{seat.seat_number}</strong> is allocated for stage acoustics, sound engineering consoles, or venue security.
-            </p>
-          </div>
-        )}
-
-        {/* Confirmed Receipt Box */}
-        {confirmedBookingRef && (
-          <div className="rounded border border-emerald-900/80 bg-emerald-950/20 p-5 space-y-3">
-            <div className="flex items-center space-x-2 text-emerald-400">
-              <CheckCircle2 className="h-5 w-5" />
-              <span className="font-semibold">Booking Confirmed!</span>
-            </div>
-            <p className="text-xs text-neutral-300">
-              Your seat has been permanently locked via database row-level locking (SELECT ... FOR UPDATE).
-            </p>
-            <div className="rounded bg-black/40 p-3 font-mono text-xs space-y-1">
-              <div className="text-neutral-400 text-[11px]">BOOKING REFERENCE</div>
-              <div className="text-base font-bold text-white tracking-widest">{confirmedBookingRef}</div>
-            </div>
-          </div>
-        )}
-
-        {/* Active Reservation by Current User */}
-        {isReservedByMe && !confirmedBookingRef && (
-          <div className="rounded border border-amber-800/80 bg-amber-950/20 p-4 space-y-3">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center space-x-2 text-amber-400 text-xs font-semibold">
-                <Clock className="h-4 w-4" />
-                <span>Temporary 5-Minute Hold Active</span>
-              </div>
-              <span className="font-mono text-sm font-bold text-amber-300 bg-amber-950/80 px-2.5 py-0.5 rounded border border-amber-700/60">
-                {formatTimer(remainingSeconds)}
-              </span>
-            </div>
-            <p className="text-xs text-neutral-400">
-              Seat is held exclusively by your Redis lock. Click Confirm & Pay to finalize your booking before the timer expires.
-            </p>
-          </div>
-        )}
-
-        {/* Normal Available State: Payment Simulator Controls */}
-        {seat.status === 'Available' && !confirmedBookingRef && (
-          <div className="rounded border border-neutral-800 bg-neutral-900/30 p-4 space-y-3">
-            <div className="flex items-center space-x-2 text-xs font-semibold text-neutral-300">
-              <CreditCard className="h-4 w-4" />
-              <span>Payment Simulator Mode</span>
-            </div>
-            <p className="text-[11px] text-neutral-400">
-              Simulates real-world payment gateway latency (1-8s) and non-deterministic outcomes.
-            </p>
-            
-            <div className="grid grid-cols-2 gap-2 text-xs">
-              {[
-                { id: 'success', label: 'Force Success (Demo)' },
-                { id: 'random', label: 'Random (70/15/10/5)' },
-                { id: 'failure', label: 'Force Decline' },
-                { id: 'timeout', label: 'Force Timeout' },
-              ].map((opt) => (
-                <button
-                  key={opt.id}
-                  onClick={() => setForceOutcome(opt.id)}
-                  className={`rounded px-2.5 py-1.5 text-left border text-[11px] transition-colors ${
-                    forceOutcome === opt.id
-                      ? 'border-neutral-200 bg-neutral-800 text-white font-medium'
-                      : 'border-neutral-800 bg-neutral-900/80 text-neutral-400 hover:border-neutral-700'
-                  }`}
-                >
-                  {opt.label}
-                </button>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {/* Status Notification / Error Message */}
-        {statusMessage && (
-          <div
-            className={`rounded border p-3 text-xs flex flex-col space-y-2 ${
-              statusMessage.type === 'success'
-                ? 'border-emerald-800/80 bg-emerald-950/20 text-emerald-300'
-                : statusMessage.type === 'error'
-                ? 'border-red-900/80 bg-red-950/20 text-red-300'
-                : 'border-neutral-700 bg-neutral-800/50 text-neutral-300'
-            }`}
-          >
-            <div className="flex items-start space-x-2">
+          {/* Status Message */}
+          {statusMessage && (
+            <div
+              className={`rounded-lg border p-3 text-xs flex items-start space-x-2 ${
+                statusMessage.type === 'success'
+                  ? 'border-emerald-800/80 bg-emerald-950/20 text-emerald-300'
+                  : statusMessage.type === 'error'
+                  ? 'border-red-900/80 bg-red-950/20 text-red-300'
+                  : 'border-neutral-700 bg-neutral-800/50 text-neutral-300'
+              }`}
+            >
               {statusMessage.type === 'error' ? (
                 <AlertTriangle className="h-4 w-4 shrink-0 mt-0.5 text-red-400" />
               ) : statusMessage.type === 'success' ? (
@@ -433,115 +352,79 @@ export const ReservationDrawer: React.FC<ReservationDrawerProps> = ({
               )}
               <span className="leading-relaxed">{statusMessage.text}</span>
             </div>
+          )}
+        </div>
 
-            {/* If a collision occurred, provide a 1-click Waiting Queue button right inside the error */}
-            {statusMessage.isCollision && onOpenQueue && (
-              <button
-                onClick={() => {
-                  onClose();
-                  onOpenQueue();
-                }}
-                className="mt-2 self-start flex items-center space-x-1.5 rounded bg-amber-500/20 border border-amber-600/80 px-2.5 py-1 text-[11px] font-semibold text-amber-300 hover:bg-amber-500/30"
-              >
-                <Users className="h-3.5 w-3.5" />
-                <span>Join Waiting Queue for This Seat</span>
-              </button>
-            )}
-          </div>
-        )}
-      </div>
-
-      {/* Footer Action Buttons */}
-      <div className="border-t border-neutral-800 p-6 space-y-2">
-        {/* If Seat is Booked or Reserved by another user: Show Queue & Alternative options */}
-        {seat.status === 'Booked' || (seat.status === 'Reserved' && !isReservedByMe) ? (
-          <div className="space-y-2">
-            {onOpenQueue && (
-              <button
-                onClick={() => {
-                  onClose();
-                  onOpenQueue();
-                }}
-                className="w-full rounded bg-amber-500 py-2.5 text-xs font-semibold text-black transition-colors hover:bg-amber-400 flex items-center justify-center space-x-2 shadow-lg shadow-amber-950/40"
-              >
-                <Users className="h-4 w-4" />
-                <span>Join Waiting Queue (Position Priority)</span>
-              </button>
-            )}
+        {/* Footer Action Buttons */}
+        <div className="border-t border-neutral-800 p-5 space-y-2">
+          {seat.status === 'Booked' || (seat.status === 'Reserved' && !isReservedByMe) ? (
             <button
               onClick={onClose}
-              className="w-full rounded border border-neutral-800 py-2 text-xs text-neutral-300 hover:bg-neutral-800 hover:text-white"
+              className="w-full rounded border border-neutral-800 py-2.5 text-xs text-neutral-300 hover:bg-neutral-800 hover:text-white cursor-pointer"
             >
-              Pick An Available Seat
+              Choose Another Seat
             </button>
-          </div>
-        ) : !confirmedBookingRef ? (
-          /* Seat is Available or Reserved by Current User */
-          <>
-            {!isReservedByMe ? (
-              <>
-                {/* 1-Click Instant Book */}
+          ) : !confirmedBookingRef ? (
+            <>
+              {!isReservedByMe ? (
+                <>
+                  <button
+                    disabled={isReserving || isConfirming || seat.status !== 'Available'}
+                    onClick={handleInstantBook}
+                    className="w-full rounded bg-emerald-500 py-2.5 text-xs font-bold text-black transition-colors hover:bg-emerald-400 disabled:bg-neutral-800 disabled:text-neutral-500 flex items-center justify-center space-x-2 cursor-pointer shadow-md"
+                  >
+                    {isReserving || isConfirming ? (
+                      <>
+                        <RefreshCw className="h-4 w-4 animate-spin text-black" />
+                        <span>Processing...</span>
+                      </>
+                    ) : (
+                      <>
+                        <Zap className="h-4 w-4 fill-black" />
+                        <span>Book Seat (${Number(seat.price).toFixed(2)})</span>
+                      </>
+                    )}
+                  </button>
+                  <button
+                    disabled={isReserving || isConfirming || seat.status !== 'Available'}
+                    onClick={handleReserve}
+                    className="w-full rounded border border-neutral-800 bg-neutral-900 py-2 text-xs text-neutral-300 hover:bg-neutral-800 disabled:opacity-50 cursor-pointer"
+                  >
+                    {isReserving ? 'Holding...' : 'Hold for 5 Minutes'}
+                  </button>
+                </>
+              ) : (
                 <button
-                  disabled={isReserving || isConfirming || seat.status !== 'Available'}
-                  onClick={handleInstantBook}
-                  className="w-full rounded bg-emerald-500 py-2.5 text-xs font-semibold text-black transition-colors hover:bg-emerald-400 disabled:bg-neutral-800 disabled:text-neutral-500 flex items-center justify-center space-x-2 shadow-lg shadow-emerald-950/40"
+                  disabled={isConfirming || remainingSeconds <= 0}
+                  onClick={handleConfirm}
+                  className="w-full rounded bg-emerald-500 py-2.5 text-xs font-bold text-black transition-colors hover:bg-emerald-400 disabled:bg-neutral-800 disabled:text-neutral-500 flex items-center justify-center space-x-2 cursor-pointer shadow-md"
                 >
-                  {isReserving || isConfirming ? (
+                  {isConfirming ? (
                     <>
-                      <RefreshCw className="h-4 w-4 animate-spin" />
-                      <span>{isReserving ? 'Reserving...' : 'Confirming Booking...'}</span>
+                      <RefreshCw className="h-4 w-4 animate-spin text-black" />
+                      <span>Processing Payment...</span>
                     </>
                   ) : (
-                    <>
-                      <Zap className="h-4 w-4 fill-black" />
-                      <span>Instant 1-Click Book (${Number(seat.price).toFixed(2)})</span>
-                    </>
+                    <span>Confirm & Pay (${Number(seat.price).toFixed(2)})</span>
                   )}
                 </button>
-
-                {/* Or Reserve Only (5-Min Hold) */}
-                <button
-                  disabled={isReserving || isConfirming || seat.status !== 'Available'}
-                  onClick={handleReserve}
-                  className="w-full rounded border border-neutral-700 bg-neutral-900 py-2 text-xs font-medium text-neutral-300 hover:bg-neutral-800 disabled:opacity-50"
-                >
-                  {isReserving ? 'Reserving...' : 'Reserve (5-Min Hold Only)'}
-                </button>
-              </>
-            ) : (
-              /* Already Reserved: Confirm & Pay */
+              )}
               <button
-                disabled={isConfirming || remainingSeconds <= 0}
-                onClick={handleConfirm}
-                className="w-full rounded bg-emerald-500 py-2.5 text-xs font-semibold text-black transition-colors hover:bg-emerald-400 disabled:bg-neutral-800 disabled:text-neutral-500 flex items-center justify-center space-x-2 shadow-lg shadow-emerald-950/40"
+                onClick={onClose}
+                className="w-full rounded border border-neutral-800 py-2 text-xs text-neutral-400 hover:bg-neutral-800 hover:text-white cursor-pointer"
               >
-                {isConfirming ? (
-                  <>
-                    <RefreshCw className="h-4 w-4 animate-spin" />
-                    <span>Processing Transaction...</span>
-                  </>
-                ) : (
-                  <span>Confirm & Pay (${Number(seat.price).toFixed(2)})</span>
-                )}
+                Cancel
               </button>
-            )}
+            </>
+          ) : (
             <button
               onClick={onClose}
-              className="w-full rounded border border-neutral-800 py-2 text-xs text-neutral-400 hover:bg-neutral-800 hover:text-white"
+              className="w-full rounded border border-neutral-800 py-2.5 text-xs text-neutral-200 hover:bg-neutral-800 hover:text-white cursor-pointer"
             >
-              Cancel
+              Done
             </button>
-          </>
-        ) : (
-          /* Booking Confirmed */
-          <button
-            onClick={onClose}
-            className="w-full rounded border border-neutral-800 py-2 text-xs text-neutral-300 hover:bg-neutral-800 hover:text-white"
-          >
-            Close
-          </button>
-        )}
-      </div>
+          )}
+        </div>
     </div>
   </>
   );
