@@ -183,16 +183,16 @@ export const ReservationDrawer: React.FC<ReservationDrawerProps> = ({
 
       <div className="fixed inset-y-0 right-0 z-50 flex w-full max-w-md flex-col border-l border-neutral-700 bg-[#0e0f13] text-neutral-200 shadow-2xl">
         {/* Header */}
-        <div className="flex items-center justify-between border-b border-neutral-800 bg-[#12141a] px-6 py-4">
+        <div className="flex items-center justify-between border-b border-neutral-800 bg-[#111317] px-6 py-4">
           <div>
             <div className="flex items-center space-x-2">
-              <span className="h-2 w-2 rounded-full bg-emerald-400 animate-pulse" />
-              <span className="font-mono text-xs uppercase tracking-wider text-emerald-400 font-bold">
+              <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" />
+              <span className="font-mono text-xs uppercase tracking-wider text-neutral-400 font-semibold">
                 Ticket Checkout
               </span>
             </div>
-            <h2 className="text-xl font-black text-white tracking-tight mt-0.5">
-              Seat {seat.seat_number} - <span className="text-emerald-400">${Number(seat.price).toFixed(2)}</span>
+            <h2 className="text-xl font-bold text-white tracking-tight mt-0.5">
+              Seat {seat.seat_number} - <span className="text-neutral-200">${Number(seat.price).toFixed(2)}</span>
             </h2>
           </div>
           <button
@@ -371,7 +371,7 @@ export const ReservationDrawer: React.FC<ReservationDrawerProps> = ({
                   <button
                     disabled={isReserving || isConfirming || seat.status !== 'Available'}
                     onClick={handleInstantBook}
-                    className="w-full rounded bg-emerald-500 py-2.5 text-xs font-bold text-black transition-colors hover:bg-emerald-400 disabled:bg-neutral-800 disabled:text-neutral-500 flex items-center justify-center space-x-2 cursor-pointer shadow-md"
+                    className="w-full rounded-md bg-white py-2.5 text-xs font-semibold text-neutral-950 transition-colors hover:bg-neutral-200 active:scale-95 disabled:bg-neutral-800 disabled:text-neutral-500 flex items-center justify-center space-x-2 cursor-pointer shadow-sm"
                   >
                     {isReserving || isConfirming ? (
                       <>
@@ -388,7 +388,7 @@ export const ReservationDrawer: React.FC<ReservationDrawerProps> = ({
                   <button
                     disabled={isReserving || isConfirming || seat.status !== 'Available'}
                     onClick={handleReserve}
-                    className="w-full rounded border border-neutral-800 bg-neutral-900 py-2 text-xs text-neutral-300 hover:bg-neutral-800 disabled:opacity-50 cursor-pointer"
+                    className="w-full rounded-md border border-neutral-700 bg-neutral-900 py-2 text-xs font-medium text-neutral-300 hover:border-neutral-500 hover:text-white disabled:opacity-50 cursor-pointer"
                   >
                     {isReserving ? 'Holding...' : 'Hold for 5 Minutes'}
                   </button>
@@ -397,7 +397,7 @@ export const ReservationDrawer: React.FC<ReservationDrawerProps> = ({
                 <button
                   disabled={isConfirming || remainingSeconds <= 0}
                   onClick={handleConfirm}
-                  className="w-full rounded bg-emerald-500 py-2.5 text-xs font-bold text-black transition-colors hover:bg-emerald-400 disabled:bg-neutral-800 disabled:text-neutral-500 flex items-center justify-center space-x-2 cursor-pointer shadow-md"
+                  className="w-full rounded-md bg-white py-2.5 text-xs font-semibold text-neutral-950 transition-colors hover:bg-neutral-200 active:scale-95 disabled:bg-neutral-800 disabled:text-neutral-500 flex items-center justify-center space-x-2 cursor-pointer shadow-sm"
                 >
                   {isConfirming ? (
                     <>

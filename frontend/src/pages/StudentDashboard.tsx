@@ -5,7 +5,7 @@ import type { Seat, Reservation } from '../types';
 import { SeatGrid } from '../components/SeatGrid';
 import { ReservationDrawer } from '../components/ReservationDrawer';
 import { WaitingQueueModal } from '../components/WaitingQueueModal';
-import { Users, Clock, Play, Pause, RotateCcw, Zap } from 'lucide-react';
+import { Users, Clock, Play, Pause, RotateCcw, Zap, Calendar, MapPin, Ticket } from 'lucide-react';
 
 interface SimulationAction {
   id: string;
@@ -146,105 +146,170 @@ export const StudentDashboard: React.FC = () => {
   return (
     <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 space-y-6">
       
-      {/* Sleek Minimal Header Bar */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-neutral-800/80 pb-4">
-        <div>
-          <div className="flex items-center space-x-2">
-            <h1 className="text-lg font-bold text-white tracking-tight">Concert Auditorium</h1>
-            <span className="text-xs font-mono text-neutral-500">• 500 Seats</span>
+      {/* 1. Event Hero & Overview Card */}
+      <div className="rounded-xl border border-neutral-800 bg-[#101216] p-5 sm:p-6 space-y-4">
+        <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+          <div className="space-y-1.5">
+            <div className="flex items-center space-x-2">
+              <span className="rounded bg-neutral-800 px-2 py-0.5 font-mono text-[11px] font-medium text-neutral-300 border border-neutral-700/60">
+                CAMPUS LIVE 2026
+              </span>
+              <span className="flex items-center space-x-1.5 font-mono text-[11px] text-neutral-400">
+                <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" />
+                <span>Portal Live • Concurrent Booking</span>
+              </span>
+            </div>
+            <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-white">
+              Annual College Music Concert
+            </h1>
+            <p className="text-xs text-neutral-400 max-w-2xl leading-relaxed">
+              Reserve your seat with temporary 5-minute atomic holds. Distributed locks guarantee zero double-bookings across 10,000 concurrent students.
+            </p>
           </div>
-          <div className="flex items-center space-x-3 text-xs font-mono mt-1 text-neutral-400">
-            <span className="flex items-center space-x-1.5 text-emerald-400">
-              <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" />
-              <span>{availableCount} Available</span>
+
+          {/* Quick Actions */}
+          <div className="flex flex-wrap items-center gap-2.5 shrink-0">
+            <button
+              onClick={handleQuickBookBestSeat}
+              disabled={availableCount === 0}
+              className="flex items-center space-x-1.5 rounded-lg bg-white px-4 py-2.5 text-xs font-semibold text-neutral-950 hover:bg-neutral-200 active:scale-95 transition-all disabled:bg-neutral-800 disabled:text-neutral-500 cursor-pointer shadow-sm"
+            >
+              <Zap className="h-3.5 w-3.5 fill-black" />
+              <span>Quick Book Best Seat</span>
+            </button>
+            <button
+              onClick={() => setIsQueueModalOpen(true)}
+              className="flex items-center space-x-1.5 rounded-lg border border-neutral-700 bg-neutral-900 px-3.5 py-2.5 text-xs font-medium text-neutral-200 hover:border-neutral-500 hover:text-white cursor-pointer"
+            >
+              <Users className="h-3.5 w-3.5 text-amber-400" />
+              <span>Waiting Queue ({queueStatus?.total_in_queue || 0})</span>
+            </button>
+          </div>
+        </div>
+
+        {/* Event Key Details Strip */}
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-3 border-t border-neutral-800/80 text-xs font-mono text-neutral-400">
+          <div className="flex items-center space-x-2">
+            <Calendar className="h-4 w-4 text-neutral-500 shrink-0" />
+            <span>Today, 6:00 PM - 10:00 PM</span>
+          </div>
+          <div className="flex items-center space-x-2">
+            <MapPin className="h-4 w-4 text-neutral-500 shrink-0" />
+            <span>Main Campus Auditorium • 500 Seats</span>
+          </div>
+          <div className="flex items-center space-x-2">
+            <Ticket className="h-4 w-4 text-neutral-500 shrink-0" />
+            <span>VIP ($150) • Standard ($75) • Balcony ($45)</span>
+          </div>
+        </div>
+      </div>
+
+      {/* 2. Three-Step Booking Guide Strip */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+        <div className="rounded-lg border border-neutral-800/80 bg-neutral-900/40 p-3.5 space-y-1">
+          <div className="flex items-center space-x-2 text-xs font-semibold text-white">
+            <span className="flex h-5 w-5 items-center justify-center rounded-full bg-neutral-800 text-[11px] font-mono text-neutral-300">
+              1
             </span>
-            <span className="text-neutral-700">/</span>
-            <span className="flex items-center space-x-1.5 text-amber-400">
+            <span>Select Your Seat</span>
+          </div>
+          <p className="text-[11px] text-neutral-400 leading-normal pl-7">
+            Click any available seat below to view tier details and coordinate placement.
+          </p>
+        </div>
+
+        <div className="rounded-lg border border-neutral-800/80 bg-neutral-900/40 p-3.5 space-y-1">
+          <div className="flex items-center space-x-2 text-xs font-semibold text-white">
+            <span className="flex h-5 w-5 items-center justify-center rounded-full bg-neutral-800 text-[11px] font-mono text-neutral-300">
+              2
+            </span>
+            <span>5-Minute Exclusive Hold</span>
+          </div>
+          <p className="text-[11px] text-neutral-400 leading-normal pl-7">
+            A temporary Redis lock protects your seat while you review payment details.
+          </p>
+        </div>
+
+        <div className="rounded-lg border border-neutral-800/80 bg-neutral-900/40 p-3.5 space-y-1">
+          <div className="flex items-center space-x-2 text-xs font-semibold text-white">
+            <span className="flex h-5 w-5 items-center justify-center rounded-full bg-neutral-800 text-[11px] font-mono text-neutral-300">
+              3
+            </span>
+            <span>Instant Confirmation</span>
+          </div>
+          <p className="text-[11px] text-neutral-400 leading-normal pl-7">
+            Postgres row-level locks confirm your booking with zero double-booking risk.
+          </p>
+        </div>
+      </div>
+
+      {/* 3. Auditorium Capacity Bar & Rush Simulator Controls */}
+      <div className="rounded-lg border border-neutral-800 bg-[#101216] p-4 space-y-3">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 text-xs">
+          <div className="flex items-center space-x-3 font-mono">
+            <span className="text-neutral-400 font-semibold">CAPACITY:</span>
+            <span className="text-emerald-400 font-medium">{availableCount} Available</span>
+            <span className="text-neutral-600">•</span>
+            <span className="text-amber-400 font-medium">{reservedCount} Under Hold</span>
+            <span className="text-neutral-600">•</span>
+            <span className="text-neutral-400 font-medium">{bookedCount} Confirmed</span>
+          </div>
+
+          <div className="flex items-center space-x-2 shrink-0">
+            {/* Rush Simulation Toggle */}
+            <button
+              onClick={() => setIsSimulating(!isSimulating)}
+              className={`flex items-center space-x-1.5 rounded px-3 py-1.5 text-xs font-medium transition-colors cursor-pointer ${
+                isSimulating
+                  ? 'bg-amber-400 text-black font-semibold'
+                  : 'border border-neutral-700 bg-neutral-800 text-neutral-300 hover:text-white'
+              }`}
+            >
+              {isSimulating ? (
+                <>
+                  <Pause className="h-3.5 w-3.5 fill-black" />
+                  <span>Rush Active (10/s)</span>
+                </>
+              ) : (
+                <>
+                  <Play className="h-3.5 w-3.5" />
+                  <span>Simulate Rush</span>
+                </>
+              )}
+            </button>
+
+            {/* Reset Seats Button */}
+            <button
+              disabled={isResetting}
+              onClick={handleResetAllSeats}
+              title="Reset seats to available"
+              className="rounded border border-neutral-800 bg-neutral-900 p-1.5 text-neutral-400 hover:text-white disabled:opacity-50 cursor-pointer"
+            >
+              <RotateCcw className={`h-3.5 w-3.5 ${isResetting ? 'animate-spin' : ''}`} />
+            </button>
+          </div>
+        </div>
+
+        {/* Subtle, non-glowing Capacity Progress Bar */}
+        <div className="w-full h-1.5 rounded-full bg-neutral-900 border border-neutral-800 overflow-hidden flex">
+          <div style={{ width: `${(bookedCount / totalSeats) * 100}%` }} className="bg-neutral-600 transition-all duration-300" title={`${bookedCount} Booked`} />
+          <div style={{ width: `${(reservedCount / totalSeats) * 100}%` }} className="bg-amber-500/80 transition-all duration-300" title={`${reservedCount} Held`} />
+          <div style={{ width: `${(availableCount / totalSeats) * 100}%` }} className="bg-emerald-600/80 transition-all duration-300" title={`${availableCount} Available`} />
+        </div>
+
+        {/* Live Simulation Ticker when running */}
+        {isSimulating && activityFeed.length > 0 && (
+          <div className="flex items-center justify-between text-[11px] font-mono text-neutral-400 pt-1 border-t border-neutral-800/60">
+            <div className="flex items-center space-x-2">
               <span className="h-1.5 w-1.5 rounded-full bg-amber-400" />
-              <span>{reservedCount} Held</span>
-            </span>
-            <span className="text-neutral-700">/</span>
-            <span className="flex items-center space-x-1.5 text-neutral-400">
-              <span className="h-1.5 w-1.5 rounded-full bg-red-500/80" />
-              <span>{bookedCount} Booked</span>
-            </span>
+              <span className="text-neutral-200">{activityFeed[0].student_name}</span>
+              <span className="text-neutral-500">{activityFeed[0].action}</span>
+              <span className="text-white font-semibold">{activityFeed[0].seat_number}</span>
+            </div>
+            <span className="text-neutral-500 text-[10px]">{activityFeed[0].time}</span>
           </div>
-        </div>
-
-        {/* Minimal Actions */}
-        <div className="flex items-center gap-2 shrink-0">
-          {/* Rush Simulation Toggle */}
-          <button
-            onClick={() => setIsSimulating(!isSimulating)}
-            className={`flex items-center space-x-1.5 rounded-md px-3 py-1.5 text-xs font-medium transition-all cursor-pointer ${
-              isSimulating
-                ? 'bg-amber-400 text-black hover:bg-amber-300 font-semibold shadow-sm'
-                : 'border border-neutral-800 bg-neutral-900 text-neutral-300 hover:border-neutral-700 hover:text-white'
-            }`}
-          >
-            {isSimulating ? (
-              <>
-                <Pause className="h-3.5 w-3.5 fill-black" />
-                <span>Rush Active ({simSpeed}/s)</span>
-              </>
-            ) : (
-              <>
-                <Play className="h-3.5 w-3.5" />
-                <span>Simulate Rush</span>
-              </>
-            )}
-          </button>
-
-          {/* Reset Seats */}
-          <button
-            disabled={isResetting}
-            onClick={handleResetAllSeats}
-            title="Reset all seats back to Available"
-            className="rounded-md border border-neutral-800 bg-neutral-900 p-2 text-neutral-400 hover:border-neutral-700 hover:text-white disabled:opacity-50 cursor-pointer"
-          >
-            <RotateCcw className={`h-3.5 w-3.5 ${isResetting ? 'animate-spin' : ''}`} />
-          </button>
-
-          {/* Waiting Queue */}
-          <button
-            onClick={() => setIsQueueModalOpen(true)}
-            className="flex items-center space-x-1.5 rounded-md border border-neutral-800 bg-neutral-900 px-3 py-1.5 text-xs font-medium text-neutral-300 hover:border-neutral-700 hover:text-white cursor-pointer"
-          >
-            <Users className="h-3.5 w-3.5 text-amber-400" />
-            <span>Queue ({queueStatus?.total_in_queue || 0})</span>
-          </button>
-
-          {/* Quick Book */}
-          <button
-            onClick={handleQuickBookBestSeat}
-            disabled={availableCount === 0}
-            className="flex items-center space-x-1.5 rounded-md bg-emerald-500 px-3.5 py-1.5 text-xs font-bold text-black hover:bg-emerald-400 active:scale-95 transition-all disabled:bg-neutral-800 disabled:text-neutral-500 cursor-pointer shadow-sm"
-          >
-            <Zap className="h-3.5 w-3.5 fill-black" />
-            <span>Quick Book</span>
-          </button>
-        </div>
+        )}
       </div>
-
-      {/* Subtle hairline occupancy line */}
-      <div className="w-full h-1 rounded-full bg-neutral-800/60 overflow-hidden flex -mt-2">
-        <div style={{ width: `${(bookedCount / totalSeats) * 100}%` }} className="bg-red-500/80 transition-all duration-300" />
-        <div style={{ width: `${(reservedCount / totalSeats) * 100}%` }} className="bg-amber-400 transition-all duration-300" />
-        <div style={{ width: `${(availableCount / totalSeats) * 100}%` }} className="bg-emerald-500 transition-all duration-300" />
-      </div>
-
-      {/* Minimal 1-line stream when simulating */}
-      {isSimulating && activityFeed.length > 0 && (
-        <div className="flex items-center justify-between rounded border border-neutral-800/60 bg-neutral-900/40 px-3 py-1.5 text-[11px] font-mono text-neutral-400 -mt-2">
-          <div className="flex items-center space-x-2">
-            <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" />
-            <span className="text-white font-semibold">{activityFeed[0].student_name}</span>
-            <span className="text-neutral-500">{activityFeed[0].action}</span>
-            <span className="text-amber-400 font-semibold">{activityFeed[0].seat_number}</span>
-          </div>
-          <span className="text-neutral-600 text-[10px]">{activityFeed[0].time}</span>
-        </div>
-      )}
 
       {/* Active Hold Alert Banner (if user holds a seat) */}
       {activeReservation && (

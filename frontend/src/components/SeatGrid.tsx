@@ -33,26 +33,26 @@ export const SeatGrid: React.FC<SeatGridProps> = ({
     const isMyReservation = myReservationSeatId === seat.id;
 
     if (isSelected) {
-      return 'bg-white text-black border-2 border-emerald-400 ring-4 ring-emerald-500/40 font-black scale-125 z-30 shadow-xl';
+      return 'bg-white text-black font-bold border border-white ring-2 ring-neutral-400 scale-110 z-20 shadow-md';
     }
 
     if (isMyReservation) {
-      return 'bg-amber-400 text-black border-2 border-white ring-2 ring-amber-400 font-extrabold animate-pulse z-20';
+      return 'bg-amber-400 text-black font-bold border border-white scale-105 z-10 shadow-sm';
     }
 
     switch (seat.status) {
       case 'Available':
         if (seat.tier === 'VIP') {
-          return 'bg-emerald-950/80 text-emerald-200 border border-emerald-400/90 hover:bg-emerald-400 hover:text-black hover:scale-125 hover:z-20 shadow-md shadow-emerald-950 font-bold cursor-pointer ring-1 ring-emerald-400/40';
+          return 'bg-[#141a17] text-emerald-300 border border-emerald-800/60 hover:border-emerald-500 hover:bg-[#1a251f] hover:text-white cursor-pointer font-medium';
         }
-        return 'bg-emerald-950/50 text-emerald-300 border border-emerald-600/70 hover:bg-emerald-400 hover:text-black hover:scale-125 hover:z-20 shadow-sm shadow-emerald-950/40 font-semibold cursor-pointer';
+        return 'bg-[#101412] text-emerald-400/90 border border-emerald-900/50 hover:border-emerald-600 hover:bg-[#17201a] hover:text-white cursor-pointer';
       case 'Reserved':
-        return 'bg-amber-950/60 text-amber-300 border-dashed border-amber-500 hover:bg-amber-400 hover:text-black hover:scale-110 cursor-pointer animate-pulse font-medium';
+        return 'bg-[#1c1710] text-amber-300/80 border border-amber-900/50 hover:border-amber-700 cursor-pointer';
       case 'Booked':
-        return 'bg-red-950/20 text-red-400/40 border border-red-900/40 hover:border-red-500 hover:bg-red-950/50 hover:text-red-300 line-through cursor-pointer opacity-70';
+        return 'bg-neutral-900/90 text-neutral-600 border border-neutral-800/80 line-through cursor-pointer opacity-60';
       case 'Unavailable':
       default:
-        return 'bg-neutral-900 text-neutral-600 border border-neutral-800 cursor-not-allowed';
+        return 'bg-neutral-950 text-neutral-700 border border-neutral-900 cursor-not-allowed';
     }
   };
 
