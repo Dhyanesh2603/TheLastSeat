@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import type { Seat, Reservation } from '../types';
 import { seatsApi, generateIdempotencyKey } from '../services/api';
 import { Clock, AlertTriangle, CheckCircle2, X, RefreshCw, Zap, Users, AlertOctagon } from 'lucide-react';
+import { PaymentSuccessModal, PaymentDeclinedModal } from './PaymentModals';
 
 interface ReservationDrawerProps {
   seat: Seat | null;
@@ -26,6 +27,11 @@ export const ReservationDrawer: React.FC<ReservationDrawerProps> = ({
   const [statusMessage, setStatusMessage] = useState<{ text: string; type: 'success' | 'error' | 'info'; isCollision?: boolean } | null>(null);
   const [confirmedBookingRef, setConfirmedBookingRef] = useState<string | null>(null);
   const [idempotencyKey, setIdempotencyKey] = useState<string>(generateIdempotencyKey());
+
+  // Result popup modals state
+  const [isSuccessModalOpen, setIsSuccessModalOpen] = useState(false);
+  const [isDeclinedModalOpen, setIsDeclinedModalOpen] = useState(false);
+  const [declineReason, setDeclineReason] = useState<string>('');
 
   useEffect(() => {
     if (activeReservation && seat && activeReservation.seat_id === seat.id) {
@@ -71,6 +77,20 @@ export const ReservationDrawer: React.FC<ReservationDrawerProps> = ({
     (localReservationId != null || (activeReservation && activeReservation.seat_id === seat.id)) &&
     remainingSeconds > 0;
 
+  // Cancel / Release active hold
+  const handleCancelHold = async () => {
+    try {
+      await seatsApi.cancel(seat.id);
+    } catch (err) {
+      console.error('Failed to cancel hold:', err);
+    } finally {
+      setLocalReservationId(null);
+      setRemainingSeconds(0);
+      onReservationUpdated();
+      onClose();
+    }
+  };
+
   // 1-Click Instant Reserve & Confirm
   const handleInstantBook = async () => {
     setIsReserving(true);
@@ -81,6 +101,7 @@ export const ReservationDrawer: React.FC<ReservationDrawerProps> = ({
       const resId = res.reservation_id;
       setLocalReservationId(resId);
       setRemainingSeconds(res.remaining_seconds || 300);
+      onReservationUpdated(); // Instantly update grid so seat is blocked to others
 
       setIsReserving(false);
       setIsConfirming(true);
@@ -97,8 +118,13 @@ export const ReservationDrawer: React.FC<ReservationDrawerProps> = ({
       if (confRes.booking_status === 'Confirmed') {
         setConfirmedBookingRef(confRes.booking_reference);
         setStatusMessage({ text: confRes.message, type: 'success' });
+        setIsSuccessModalOpen(true);
       } else {
         setStatusMessage({ text: confRes.message, type: 'error' });
+        setDeclineReason(confRes.message || 'Payment transaction failed or timed out. Seat released.');
+        setIsDeclinedModalOpen(true);
+        setLocalReservationId(null);
+        setRemainingSeconds(0);
       }
       onReservationUpdated();
     } catch (err: any) {
@@ -115,6 +141,10 @@ export const ReservationDrawer: React.FC<ReservationDrawerProps> = ({
       }
 
       setStatusMessage({ text: userFriendlyText, type: 'error', isCollision });
+      setDeclineReason(userFriendlyText);
+      setIsDeclinedModalOpen(true);
+      setLocalReservationId(null);
+      setRemainingSeconds(0);
       onReservationUpdated();
     } finally {
       setIsReserving(false);
@@ -160,13 +190,22 @@ export const ReservationDrawer: React.FC<ReservationDrawerProps> = ({
       if (res.booking_status === 'Confirmed') {
         setConfirmedBookingRef(res.booking_reference);
         setStatusMessage({ text: res.message, type: 'success' });
+        setIsSuccessModalOpen(true);
       } else {
         setStatusMessage({ text: res.message, type: 'error' });
+        setDeclineReason(res.message || 'Payment declined. Seat released.');
+        setIsDeclinedModalOpen(true);
+        setLocalReservationId(null);
+        setRemainingSeconds(0);
       }
       onReservationUpdated();
     } catch (err: any) {
       const detail = err.response?.data?.detail || 'Payment or confirmation failed.';
       setStatusMessage({ text: detail, type: 'error' });
+      setDeclineReason(detail);
+      setIsDeclinedModalOpen(true);
+      setLocalReservationId(null);
+      setRemainingSeconds(0);
       onReservationUpdated();
     } finally {
       setIsConfirming(false);
@@ -409,12 +448,21 @@ export const ReservationDrawer: React.FC<ReservationDrawerProps> = ({
                   )}
                 </button>
               )}
-              <button
-                onClick={onClose}
-                className="w-full rounded border border-neutral-800 py-2 text-xs text-neutral-400 hover:bg-neutral-800 hover:text-white cursor-pointer"
-              >
-                Cancel
-              </button>
+              {isReservedByMe ? (
+                <button
+                  onClick={handleCancelHold}
+                  className="w-full rounded border border-neutral-800 py-2 text-xs text-neutral-400 hover:bg-neutral-800 hover:text-white cursor-pointer"
+                >
+                  Release Hold & Pick Another
+                </button>
+              ) : (
+                <button
+                  onClick={onClose}
+                  className="w-full rounded border border-neutral-800 py-2 text-xs text-neutral-400 hover:bg-neutral-800 hover:text-white cursor-pointer"
+                >
+                  Cancel
+                </button>
+              )}
             </>
           ) : (
             <button
@@ -425,7 +473,34 @@ export const ReservationDrawer: React.FC<ReservationDrawerProps> = ({
             </button>
           )}
         </div>
-    </div>
-  </>
+      </div>
+
+      {/* Payment Success & Declined Modals */}
+      <PaymentSuccessModal
+        isOpen={isSuccessModalOpen}
+        bookingReference={confirmedBookingRef || ''}
+        seatNumber={seat.seat_number}
+        tier={seat.tier}
+        amount={Number(seat.price)}
+        onClose={() => {
+          setIsSuccessModalOpen(false);
+          onClose();
+        }}
+      />
+      <PaymentDeclinedModal
+        isOpen={isDeclinedModalOpen}
+        seatNumber={seat.seat_number}
+        reason={declineReason}
+        onClose={() => {
+          setIsDeclinedModalOpen(false);
+          onClose();
+        }}
+        onJoinQueue={onOpenQueue}
+        onPickAnother={() => {
+          setIsDeclinedModalOpen(false);
+          onClose();
+        }}
+      />
+    </>
   );
 };

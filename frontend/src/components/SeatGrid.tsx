@@ -47,7 +47,7 @@ export const SeatGrid: React.FC<SeatGridProps> = ({
         }
         return 'bg-[#101412] text-emerald-400/90 border border-emerald-900/50 hover:border-emerald-600 hover:bg-[#17201a] hover:text-white cursor-pointer';
       case 'Reserved':
-        return 'bg-[#1c1710] text-amber-300/80 border border-amber-900/50 hover:border-amber-700 cursor-pointer';
+        return 'bg-[#261609] text-amber-300 border border-amber-600/70 hover:border-amber-400 cursor-pointer font-medium';
       case 'Booked':
         return 'bg-neutral-900/90 text-neutral-600 border border-neutral-800/80 line-through cursor-pointer opacity-60';
       case 'Unavailable':
@@ -152,20 +152,20 @@ export const SeatGrid: React.FC<SeatGridProps> = ({
       <div className="flex flex-wrap items-center justify-between gap-3 border-t border-neutral-800/80 pt-3 text-[11px] text-neutral-400 font-mono">
         <div className="flex items-center space-x-4">
           <div className="flex items-center space-x-1.5">
-            <span className="h-2.5 w-2.5 rounded-xs border border-emerald-500 bg-emerald-950/70" />
+            <span className="h-2.5 w-2.5 rounded-xs border border-emerald-800/60 bg-[#101412]" />
             <span className="text-emerald-400">Available</span>
           </div>
           <div className="flex items-center space-x-1.5">
-            <span className="h-2.5 w-2.5 rounded-xs border border-dashed border-amber-500 bg-amber-950/60" />
-            <span className="text-amber-400">5m Hold</span>
+            <span className="h-2.5 w-2.5 rounded-xs border border-amber-600/70 bg-[#261609]" />
+            <span className="text-amber-300 font-medium">Temporarily Blocked (5m Hold)</span>
           </div>
           <div className="flex items-center space-x-1.5">
-            <span className="h-2.5 w-2.5 rounded-xs border border-red-900/60 bg-red-950/20" />
+            <span className="h-2.5 w-2.5 rounded-xs border border-neutral-800 bg-neutral-900" />
             <span className="text-neutral-500 line-through">Booked</span>
           </div>
           <div className="flex items-center space-x-1.5">
             <span className="h-2.5 w-2.5 rounded-xs border border-white bg-amber-400" />
-            <span className="text-amber-300">Your Seat</span>
+            <span className="text-amber-200 font-semibold">Your Hold</span>
           </div>
         </div>
 

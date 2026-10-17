@@ -13,19 +13,14 @@ export const Navbar: React.FC = () => {
     <header className="sticky top-0 z-40 w-full border-b border-neutral-800 bg-[#0d0e12]/90 backdrop-blur-md">
       <div className="mx-auto flex h-14 max-w-7xl items-center justify-between px-4 sm:px-6">
         
-        {/* Left: Branding & Status */}
+        {/* Left: Branding */}
         <div className="flex items-center space-x-4">
           <Link to="/" className="flex items-center space-x-2 text-sm font-semibold tracking-wider text-neutral-100">
-            <span className="flex h-6 w-6 items-center justify-center rounded border border-neutral-700 bg-neutral-900 text-xs font-mono text-emerald-400">
+            <span className="flex h-6 w-6 items-center justify-center rounded border border-neutral-700 bg-neutral-900 text-xs font-mono text-neutral-300">
               500
             </span>
             <span className="tracking-tight uppercase">Concert // Booking Platform</span>
           </Link>
-
-          <div className="hidden items-center space-x-2 rounded-full border border-neutral-800 bg-neutral-900/60 px-2.5 py-0.5 text-xs text-neutral-400 sm:flex">
-            <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
-            <span className="font-mono text-[11px] text-neutral-300">ACID // REDIS ACTIVE</span>
-          </div>
         </div>
 
         {/* Center: Navigation Links */}

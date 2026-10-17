@@ -180,8 +180,11 @@ class BookingService:
                     }
                 else:
                     # Payment Failed or Timed Out
-                    # As specified: "If payment fails: Reservation should remain active until expiration."
+                    # As requested: Immediately release seat to Available and notify waiting queue
                     reservation.status = ReservationStatus.PAYMENT_FAILED
+                    seat.status = SeatStatus.AVAILABLE
+                    seat.version += 1
+                    await redis_client.delete(f"seat:{seat.id}:reservation")
 
                     payment = await payment_repo.create(
                         db=db,
@@ -208,6 +211,9 @@ class BookingService:
                         ip_address=ip_address
                     )
 
+                    # Notify waiting queue that seat was released
+                    await queue_service.notify_next_in_queue(db, redis_client, seat_id=seat.id)
+
                     await db.commit()
 
                     # Dispatch asynchronous event to message broker
@@ -228,7 +234,7 @@ class BookingService:
                         "payment_id": payment.id,
                         "payment_status": payment.status.value,
                         "booking_status": "Failed",
-                        "message": f"Payment {payment_result.status.value.lower()}: {payment_result.failure_reason}. Your reservation remains held until expiry."
+                        "message": f"Payment {payment_result.status.value.lower()}: {payment_result.failure_reason}. Seat {seat.seat_number} has been released."
                     }
 
         except LockAcquisitionError:
@@ -260,16 +266,27 @@ class BookingService:
             if not seat:
                 raise HTTPException(status_code=404, detail="Seat not found.")
 
-            # 2. Find confirmed booking
+            # 2. Find confirmed booking or active reservation
             booking = await booking_repo.get_confirmed_by_seat(db, seat_id)
-            if not booking:
-                raise HTTPException(status_code=400, detail="No active confirmed booking found for this seat.")
+            booking_id = None
+            booking_ref = None
 
-            if booking.user_id != user_id and not is_admin:
-                raise HTTPException(status_code=403, detail="You do not own this booking.")
+            if booking:
+                if booking.user_id != user_id and not is_admin:
+                    raise HTTPException(status_code=403, detail="You do not own this booking.")
+                await booking_repo.cancel(db, booking)
+                booking_id = booking.id
+                booking_ref = booking.booking_reference
+            else:
+                reservation = await reservation_repo.get_active_by_seat(db, seat_id)
+                if not reservation:
+                    raise HTTPException(status_code=400, detail="No active confirmed booking or reservation found for this seat.")
+                if reservation.user_id != user_id and not is_admin:
+                    raise HTTPException(status_code=403, detail="You do not own this reservation.")
+                reservation.status = ReservationStatus.CANCELLED
+                booking_ref = "HOLD-RELEASED"
 
-            # 3. Cancel booking & restore seat
-            await booking_repo.cancel(db, booking)
+            # 3. Restore seat status to Available
             seat.status = SeatStatus.AVAILABLE
             seat.version += 1
 
@@ -284,8 +301,8 @@ class BookingService:
             await audit_repo.log(
                 db,
                 action="BOOKING_CANCEL",
-                entity_type="Booking",
-                entity_id=booking.id,
+                entity_type="Booking" if booking_id else "Reservation",
+                entity_id=booking_id or reservation.id,
                 user_id=user_id,
                 metadata_json={"seat_id": seat.id, "seat_number": seat.seat_number},
                 ip_address=ip_address
@@ -295,18 +312,18 @@ class BookingService:
 
             # Dispatch asynchronous event to message broker
             await event_broker.publish("booking.cancelled", {
-                "booking_id": booking.id,
-                "booking_reference": booking.booking_reference,
+                "booking_id": booking_id,
+                "booking_reference": booking_ref,
                 "seat_id": seat.id,
                 "seat_number": seat.seat_number,
                 "user_id": str(user_id)
             })
 
             return {
-                "booking_id": booking.id,
+                "booking_id": booking_id,
                 "seat_id": seat.id,
                 "status": "Cancelled",
-                "message": f"Booking {booking.booking_reference} for seat {seat.seat_number} cancelled. Seat released."
+                "message": f"Seat {seat.seat_number} hold/booking cancelled. Seat released."
             }
 
     async def get_booking_history(self, db: AsyncSession, user_id: str) -> dict:
